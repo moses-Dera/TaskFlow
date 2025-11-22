@@ -83,6 +83,11 @@ export default function Login({ onLogin, onBackToLanding }) {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            <div className="text-right mt-2">
+              <a href="/forgot-password" className="text-sm text-primary hover:text-blue-700">
+                Forgot password?
+              </a>
+            </div>
           </div>
 
           <Button type="submit" className="w-full">

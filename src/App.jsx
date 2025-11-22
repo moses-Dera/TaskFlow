@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import AdminDashboard from './pages/AdminDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
@@ -11,6 +12,8 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import LandingPage from './pages/LandingPage';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import { useAuth } from './hooks/useAuth';
 import { useTheme } from './hooks/useTheme';
 
@@ -29,19 +32,6 @@ function App() {
         </div>
       </div>
     );
-  }
-
-  if (!user) {
-    if (showLanding) {
-      return (
-        <LandingPage 
-          onGetStarted={() => setShowLanding(false)}
-          isDark={isDark}
-          setIsDark={setIsDark}
-        />
-      );
-    }
-    return <Login onLogin={login} onBackToLanding={() => setShowLanding(true)} />;
   }
 
   const handleNavigation = (path) => {
@@ -69,18 +59,55 @@ function App() {
   };
 
   return (
-    <div className={isDark ? 'dark' : ''} style={{ backgroundColor: theme.background, color: theme.color, minHeight: '100vh' }}>
-      <Layout 
-        userRole={user.role} 
-        userName={user.name}
-        currentPath={currentPath}
-        onNavigate={handleNavigation}
-        onLogout={logout}
-        theme={theme}
-      >
-        {renderDashboard()}
-      </Layout>
-    </div>
+    <Router>
+      <div className={isDark ? 'dark' : ''} style={{ backgroundColor: theme.background, color: theme.color, minHeight: '100vh' }}>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={
+            !user ? (
+              showLanding ? (
+                <LandingPage 
+                  onGetStarted={() => setShowLanding(false)}
+                  isDark={isDark}
+                  setIsDark={setIsDark}
+                />
+              ) : (
+                <Login onLogin={login} onBackToLanding={() => setShowLanding(true)} />
+              )
+            ) : (
+              <Navigate to={`/${user.role}`} replace />
+            )
+          } />
+          <Route path="/login" element={
+            !user ? (
+              <Login onLogin={login} onBackToLanding={() => setShowLanding(true)} />
+            ) : (
+              <Navigate to={`/${user.role}`} replace />
+            )
+          } />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          
+          {/* Protected routes */}
+          <Route path="/*" element={
+            user ? (
+              <Layout 
+                userRole={user.role} 
+                userName={user.name}
+                currentPath={currentPath}
+                onNavigate={handleNavigation}
+                onLogout={logout}
+                theme={theme}
+              >
+                {renderDashboard()}
+              </Layout>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          } />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
