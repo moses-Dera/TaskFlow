@@ -44,9 +44,12 @@ export default function Login({ onLogin, onBackToLanding }) {
       if (response.success) {
         setAuthToken(response.token);
         onLogin(response.user);
+      } else {
+        setError(response.error || 'Signup failed');
       }
     } catch (err) {
       console.error('Signup failed:', err);
+      setError('Network error. Please try again.');
     }
   };
 
