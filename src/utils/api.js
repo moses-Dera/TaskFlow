@@ -213,6 +213,23 @@ export const fixUserAPI = {
     }),
 };
 
+// Settings API
+export const settingsAPI = {
+  updateSettings: (settingsData) => 
+    apiRequest('/users/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settingsData),
+    }),
+  
+  getSettings: () => apiRequest('/users/settings'),
+  
+  changePassword: (passwordData) => 
+    apiRequest('/users/change-password', {
+      method: 'PUT',
+      body: JSON.stringify(passwordData),
+    }),
+};
+
 // Export auth utilities
 export { getAuthToken, setAuthToken, clearAuthToken };
 

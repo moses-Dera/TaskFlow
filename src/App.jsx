@@ -25,7 +25,7 @@ import { useTheme } from './hooks/useTheme';
 
 function App() {
   const { user, login, logout, loading } = useAuth();
-  const { isDark, setIsDark, theme } = useTheme();
+  const { isDark, setIsDark, theme, currentTheme } = useTheme();
   const [currentPath, setCurrentPath] = useState(user ? `/${user.role}` : '/');
   const [showLanding, setShowLanding] = useState(!user);
 
@@ -47,7 +47,7 @@ function App() {
   const renderDashboard = () => {
     // Common pages for all roles
     if (currentPath === '/profile') return <Profile user={user} theme={theme} />;
-    if (currentPath === '/settings') return <Settings isDark={isDark} setIsDark={setIsDark} theme={theme} />;
+    if (currentPath === '/settings') return <Settings isDark={isDark} setIsDark={setIsDark} theme={theme} currentTheme={currentTheme} />;
     
     switch (user.role) {
       case 'admin':
