@@ -131,6 +131,8 @@ export const tasksAPI = {
   },
   
   getTaskFiles: (taskId) => apiRequest(`/tasks/${taskId}/files`),
+  
+  getPerformanceStats: () => apiRequest('/tasks/performance/stats'),
 };
 
 // Users API

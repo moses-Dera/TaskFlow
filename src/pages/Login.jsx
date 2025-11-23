@@ -42,10 +42,7 @@ export default function Login({ onLogin, onBackToLanding }) {
     try {
       const response = await authAPI.signup(userData);
       if (response.success) {
-        localStorage.setItem('taskManagerUser', JSON.stringify({
-          token: response.token,
-          ...response.user
-        }));
+        setAuthToken(response.token);
         onLogin(response.user);
       }
     } catch (err) {

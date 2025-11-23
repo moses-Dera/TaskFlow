@@ -13,7 +13,8 @@ export default function EmployeeDashboard({ onNavigate }) {
   const [tasks, setTasks] = useState({ today: [], week: [], later: [] });
   const [focusTask, setFocusTask] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ completed: 0, streak: 0, completionRate: 0 });
+  const [stats, setStats] = useState({ completed: 0, streak: 0, completionRate: 0, onTimeCompletion: 0, performanceScore: 'N/A' });
+  const [weeklyData, setWeeklyData] = useState([]);
   const [updating, setUpdating] = useState(null);
   const [user, setUser] = useState(null);
 
@@ -23,10 +24,45 @@ export default function EmployeeDashboard({ onNavigate }) {
       const response = await tasksAPI.updateTask(taskId, { status: 'completed' });
       if (response.success) {
         success('Task marked as completed!');
-        // Reload tasks to reflect changes
-        window.location.reload();
+        
+        // Update tasks in state instead of reloading
+        setTasks(prevTasks => {
+          const updateTaskInArray = (taskArray) => 
+            taskArray.map(task => 
+              task._id === taskId ? { ...task, status: 'completed' } : task
+            );
+          
+          return {
+            today: updateTaskInArray(prevTasks.today),
+            week: updateTaskInArray(prevTasks.week),
+            later: updateTaskInArray(prevTasks.later)
+          };
+        });
+        
+        // Update focus task if it's the one being completed
+        if (focusTask && focusTask._id === taskId) {
+          setFocusTask(null);
+        }
+        
+        // Refresh performance stats
+        try {
+          const perfResponse = await tasksAPI.getPerformanceStats();
+          if (perfResponse.success) {
+            const perfData = perfResponse.data;
+            setStats({
+              completed: perfData.completed_tasks,
+              streak: perfData.streak_days,
+              completionRate: perfData.completion_rate,
+              onTimeCompletion: perfData.on_time_completion,
+              performanceScore: perfData.performance_score
+            });
+            setWeeklyData(perfData.weekly_performance || []);
+          }
+        } catch (perfErr) {
+          console.error('Failed to refresh performance stats:', perfErr);
+        }
       } else {
-        error('Failed to update task: ' + response.error);
+        error('Failed to update task: ' + (response.error || 'Unknown error'));
       }
     } catch (err) {
       error('Failed to update task: ' + err.message);
@@ -38,13 +74,27 @@ export default function EmployeeDashboard({ onNavigate }) {
   useEffect(() => {
     const loadTasks = async () => {
       try {
-        const [tasksResponse, userResponse] = await Promise.all([
+        const [tasksResponse, userResponse, performanceResponse] = await Promise.all([
           tasksAPI.getTasks(),
-          authAPI.getCurrentUser()
+          authAPI.getCurrentUser(),
+          tasksAPI.getPerformanceStats()
         ]);
         
         if (userResponse.success) {
           setUser(userResponse.user);
+        }
+        
+        // Load performance stats
+        if (performanceResponse.success) {
+          const perfData = performanceResponse.data;
+          setStats({
+            completed: perfData.completed_tasks,
+            streak: perfData.streak_days,
+            completionRate: perfData.completion_rate,
+            onTimeCompletion: perfData.on_time_completion,
+            performanceScore: perfData.performance_score
+          });
+          setWeeklyData(perfData.weekly_performance || []);
         }
         
         const response = tasksResponse;
@@ -95,37 +145,7 @@ export default function EmployeeDashboard({ onNavigate }) {
             });
           }
           
-          // Calculate stats
-          const completed = allTasks.filter(task => task.status === 'completed').length;
-          const total = allTasks.length;
-          const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
-          
-          // Calculate streak (consecutive days of completed tasks)
-          const tasksByDate = {};
-          allTasks.forEach(task => {
-            if (task.completed_at) {
-              const date = new Date(task.completed_at).toDateString();
-              tasksByDate[date] = (tasksByDate[date] || 0) + 1;
-            }
-          });
-          
-          let streak = 0;
-          const currentDate = new Date();
-          for (let i = 0; i < 365; i++) {
-            const checkDate = new Date(currentDate);
-            checkDate.setDate(checkDate.getDate() - i);
-            if (tasksByDate[checkDate.toDateString()]) {
-              streak++;
-            } else if (i > 0) {
-              break;
-            }
-          }
-          
-          setStats({
-            completed,
-            streak,
-            completionRate
-          });
+          // Stats are now loaded from API above
         }
       } catch (error) {
         console.error('Failed to load tasks:', error);
@@ -261,7 +281,7 @@ export default function EmployeeDashboard({ onNavigate }) {
               <div className="space-y-3">
                 {tasks[activeTab].map((task) => (
                   <div
-                    key={task.id}
+                    key={task._id || task.id}
                     className={`p-4 rounded-lg border transition-colors ${getRowColor(task)}`}
                   >
                     <div className="space-y-3">
@@ -279,7 +299,9 @@ export default function EmployeeDashboard({ onNavigate }) {
                               <p className={`font-medium ${task.status === 'completed' ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
                                 {task.title}
                               </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">{task.dueDate}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date'}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -337,8 +359,8 @@ export default function EmployeeDashboard({ onNavigate }) {
               <CardTitle>My Performance</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <CircularProgress value={75} />
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-4">Completion Rate</p>
+              <CircularProgress value={stats.completionRate} />
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-4">Overall Completion Rate</p>
             </CardContent>
           </Card>
 
@@ -350,22 +372,52 @@ export default function EmployeeDashboard({ onNavigate }) {
                   <div className="text-sm text-gray-600 dark:text-gray-300">Tasks Completed</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-primary">{stats.streak}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">Streak Days</div>
+                  <div className="text-2xl font-bold text-green-600">{stats.onTimeCompletion}%</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">On-Time Completion</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-primary">{stats.performanceScore}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">Performance Score</div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
-            <CardContent className="p-6 text-center">
-              <div className="text-green-800 dark:text-green-300">
-                <CheckCircle className="w-8 h-8 mx-auto mb-2" />
-                <p className="font-medium">Great job!</p>
-                <p className="text-sm">You completed 4 tasks this week.</p>
+          <Card>
+            <CardHeader>
+              <CardTitle>Weekly Performance Trend</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {weeklyData.map((week, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">{week.name}</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div 
+                          className="bg-primary h-2 rounded-full" 
+                          style={{ width: `${Math.min(100, (week.value / 10) * 100)}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{week.value}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
+          
+          {stats.completed > 0 && (
+            <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+              <CardContent className="p-6 text-center">
+                <div className="text-green-800 dark:text-green-300">
+                  <CheckCircle className="w-8 h-8 mx-auto mb-2" />
+                  <p className="font-medium">Recent Achievements</p>
+                  <p className="text-sm">{stats.streak} day streak • {stats.completed} tasks completed</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
