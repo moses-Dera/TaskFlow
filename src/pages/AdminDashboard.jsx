@@ -4,20 +4,30 @@ import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card'
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ProgressBar from '../components/charts/ProgressBar';
-import { teamAPI } from '../utils/api';
+import { teamAPI, authAPI } from '../utils/api';
 
 export default function AdminDashboard() {
   const [employees, setEmployees] = useState([]);
   const [performance, setPerformance] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const loadAdminData = async () => {
       try {
-        // Get employees
-        const employeesResponse = await teamAPI.getEmployees();
-        if (employeesResponse.success) {
-          setEmployees(employeesResponse.data);
+        // Get user info and employees
+        const [employeesResponse, userResponse] = await Promise.all([
+          teamAPI.getEmployees(),
+          authAPI.getCurrentUser()
+        ]);
+        
+        if (userResponse.success) {
+          setUser(userResponse.user);
+        }
+        
+        const employeesResponse2 = employeesResponse;
+        if (employeesResponse2.success) {
+          setEmployees(employeesResponse2.data);
         }
 
         // Get performance metrics
@@ -67,7 +77,14 @@ export default function AdminDashboard() {
     <div className="space-y-8 bg-gray-50 dark:bg-gray-900 min-h-screen p-6 -m-6">
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">System Overview</h1>
-        <p className="text-gray-600 mt-1">Monitor platform health and manage users</p>
+        <p className="text-gray-600 mt-1">
+          Monitor platform health and manage users
+          {user?.company && (
+            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+              {user.company}
+            </span>
+          )}
+        </p>
       </div>
 
       {/* System Metrics */}

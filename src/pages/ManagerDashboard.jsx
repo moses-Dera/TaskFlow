@@ -13,6 +13,7 @@ export default function ManagerDashboard({ onNavigate }) {
   const [employees, setEmployees] = useState([]);
   const [performance, setPerformance] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
   const [taskStatusData, setTaskStatusData] = useState([]);
   const [productivityData, setProductivityData] = useState([]);
   const [taskForm, setTaskForm] = useState({
@@ -27,10 +28,19 @@ export default function ManagerDashboard({ onNavigate }) {
   useEffect(() => {
     const loadTeamData = async () => {
       try {
-        // Get employees
-        const employeesResponse = await teamAPI.getEmployees();
-        if (employeesResponse.success) {
-          const employeeData = employeesResponse.data.map(emp => ({
+        // Get user info and employees
+        const [employeesResponse, userResponse] = await Promise.all([
+          teamAPI.getEmployees(),
+          authAPI.getCurrentUser()
+        ]);
+        
+        if (userResponse.success) {
+          setUser(userResponse.user);
+        }
+        
+        const employeesResponse2 = employeesResponse;
+        if (employeesResponse2.success) {
+          const employeeData = employeesResponse2.data.map(emp => ({
             ...emp,
             avatar: emp.name.split(' ').map(n => n[0]).join('').toUpperCase()
           }));
@@ -120,7 +130,14 @@ export default function ManagerDashboard({ onNavigate }) {
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Team Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Monitor team performance and assign tasks</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">
+            Monitor team performance and assign tasks
+            {user?.company && (
+              <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                {user.company}
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:space-x-3">
           <Button 

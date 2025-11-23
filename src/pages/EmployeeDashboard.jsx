@@ -13,6 +13,7 @@ export default function EmployeeDashboard({ onNavigate }) {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ completed: 0, streak: 0, completionRate: 0 });
   const [updating, setUpdating] = useState(null);
+  const [user, setUser] = useState(null);
 
   const handleMarkComplete = async (taskId) => {
     setUpdating(taskId);
@@ -34,7 +35,16 @@ export default function EmployeeDashboard({ onNavigate }) {
   useEffect(() => {
     const loadTasks = async () => {
       try {
-        const response = await tasksAPI.getTasks();
+        const [tasksResponse, userResponse] = await Promise.all([
+          tasksAPI.getTasks(),
+          authAPI.getCurrentUser()
+        ]);
+        
+        if (userResponse.success) {
+          setUser(userResponse.user);
+        }
+        
+        const response = tasksResponse;
         if (response.success) {
           const allTasks = response.data;
           
@@ -163,7 +173,14 @@ export default function EmployeeDashboard({ onNavigate }) {
     <div className="space-y-8 bg-gray-50 dark:bg-gray-900 min-h-screen p-6 -m-6">
       <div>
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">My Tasks</h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-1">Stay focused and track your progress</p>
+        <p className="text-gray-600 dark:text-gray-300 mt-1">
+          Stay focused and track your progress
+          {user?.company && (
+            <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+              {user.company}
+            </span>
+          )}
+        </p>
       </div>
 
       {/* Focus Task */}
