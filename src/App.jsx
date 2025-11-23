@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
+import NotificationContainer from './components/NotificationContainer';
+import { NotificationProvider } from './context/NotificationContext';
 import AdminDashboard from './pages/AdminDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
 import ManagerChat from './pages/ManagerChat';
