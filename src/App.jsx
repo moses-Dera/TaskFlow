@@ -60,6 +60,7 @@ function App() {
         if (currentPath === '/manager/chat') return <ManagerChat />;
         if (currentPath === '/manager/performance') return <TeamPerformance />;
         if (currentPath === '/manager/tasks') return <AssignTasks />;
+        if (currentPath === '/user-management') return <UserManagement />;
         return <ManagerDashboard onNavigate={handleNavigation} />;
       case 'employee':
       default:

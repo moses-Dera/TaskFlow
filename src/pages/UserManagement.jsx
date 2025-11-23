@@ -25,22 +25,29 @@ export default function UserManagement() {
     }
   };
 
-  const handleInviteUser = async (e) => {
-    e.preventDefault();
-    if (!inviteEmail) return;
+  const handleInviteUser = async () => {
+    if (!inviteEmail) {
+      alert('Please enter an email address');
+      return;
+    }
     
+    console.log('Inviting user:', inviteEmail, 'with role:', inviteRole);
     setInviting(true);
+    
     try {
       const response = await teamAPI.inviteUser(inviteEmail, inviteRole);
+      console.log('Invite response:', response);
+      
       if (response.success) {
         alert('User invited successfully!');
         setInviteEmail('');
         setInviteRole('employee');
-        loadUsers();
+        await loadUsers();
       } else {
-        alert('Failed to invite user: ' + response.error);
+        alert('Failed to invite user: ' + (response.error || 'Unknown error'));
       }
     } catch (error) {
+      console.error('Invite error:', error);
       alert('Failed to invite user: ' + error.message);
     } finally {
       setInviting(false);
@@ -78,14 +85,13 @@ export default function UserManagement() {
           <h1 className="text-2xl font-semibold text-gray-900">User Management</h1>
           <p className="text-gray-600 mt-1">Manage system users and their permissions</p>
         </div>
-        <form onSubmit={handleInviteUser} className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2">
           <input
             type="email"
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
             placeholder="Enter email to invite"
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            required
           />
           <select
             value={inviteRole}
@@ -95,11 +101,15 @@ export default function UserManagement() {
             <option value="employee">Employee</option>
             <option value="manager">Manager</option>
           </select>
-          <Button type="submit" disabled={inviting}>
+          <button
+            onClick={handleInviteUser}
+            disabled={inviting}
+            className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
             <UserPlus className="w-4 h-4 mr-2" />
             {inviting ? 'Inviting...' : 'Invite User'}
-          </Button>
-        </form>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
