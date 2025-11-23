@@ -158,11 +158,26 @@ export default function ManagerDashboard({ onNavigate }) {
           </Button>
           <Button 
             variant="outline"
-            onClick={() => {
-              const meetUrl = `https://meet.google.com/new`;
-              window.open(meetUrl, '_blank');
-              // In real app, would send notifications to all employees
-              success('Meeting started! Link shared with all team members.');
+            onClick={async () => {
+              try {
+                const meetUrl = 'https://meet.google.com/new';
+                window.open(meetUrl, '_blank');
+                
+                // Send meeting notification to all employees
+                const meetingData = {
+                  title: 'Team Meeting',
+                  description: `Meeting started by ${user?.name || 'Manager'}`,
+                  meeting_url: meetUrl,
+                  started_at: new Date().toISOString()
+                };
+                
+                // Send meeting notification to all employees
+                await teamAPI.notifyTeamMeeting(meetingData);
+                
+                success('Meeting started! All team members have been notified via email.');
+              } catch (error) {
+                error('Failed to start meeting');
+              }
             }}
           >
             <Video className="w-4 h-4 mr-2" />

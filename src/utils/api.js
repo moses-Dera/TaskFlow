@@ -167,6 +167,11 @@ export const teamAPI = {
     apiRequest(`/team/users/${userId}`, {
       method: 'DELETE',
     }),
+  notifyTeamMeeting: (meetingData) =>
+    apiRequest('/team/notify-meeting', {
+      method: 'POST',
+      body: JSON.stringify(meetingData),
+    }),
 };
 
 // Chat API
