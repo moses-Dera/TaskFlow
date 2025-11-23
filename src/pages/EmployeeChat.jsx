@@ -1,14 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, MessageSquare } from 'lucide-react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { chatAPI, authAPI } from '../utils/api';
+import { chatAPI, authAPI, getAuthToken } from '../utils/api';
+// import io from 'socket.io-client'; // Install: npm install socket.io-client
 
 export default function EmployeeChat() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [connected, setConnected] = useState(false);
+  const socketRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -33,35 +37,47 @@ export default function EmployeeChat() {
 
     loadData();
     
-    // Poll for new messages every 3 seconds
-    const interval = setInterval(async () => {
-      try {
-        const response = await chatAPI.getMessages();
-        if (response.success) {
-          setMessages(response.data || []);
-        }
-      } catch (error) {
-        console.error('Failed to refresh messages:', error);
-      }
-    }, 3000);
+    // Initialize WebSocket connection (disabled until socket.io-client is installed)
+    // const token = getAuthToken();
+    // if (token) {
+    //   socketRef.current = io(import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://task-manger-backend-z2yz.onrender.com', {
+    //     auth: { token }
+    //   });
+    //   
+    //   socketRef.current.on('connect', () => {
+    //     setConnected(true);
+    //   });
+    //   
+    //   socketRef.current.on('newMessage', (message) => {
+    //     setMessages(prev => [...prev, message]);
+    //   });
+    //   
+    //   socketRef.current.on('disconnect', () => {
+    //     setConnected(false);
+    //   });
+    // }
 
-    return () => clearInterval(interval);
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
   }, []);
+  
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
 
     try {
-      const response = await chatAPI.sendMessage({
-        message: newMessage
-      });
-      
+      // Save to database
+      const response = await chatAPI.sendMessage({ message: newMessage });
       if (response.success) {
-        setMessages([...messages, response.data]);
-        setNewMessage('');
-      } else {
-        alert('Failed to send message');
+        setMessages(prev => [...prev, response.data]);
       }
+      setNewMessage('');
     } catch (error) {
       console.error('Failed to send message:', error);
       alert('Failed to send message: ' + error.message);
@@ -83,7 +99,12 @@ export default function EmployeeChat() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Team Chat</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            Team Chat
+            <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+              Database Chat
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -114,6 +135,7 @@ export default function EmployeeChat() {
                     </div>
                   );
                 })}
+                <div ref={messagesEndRef} />
               </div>
               <div className="flex space-x-2">
                 <input
