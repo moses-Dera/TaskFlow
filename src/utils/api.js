@@ -1,9 +1,25 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://task-manger-backend-z2yz.onrender.com/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://task-manger-backend-z2yz.onrender.com/api';
 
-// Get auth token from localStorage
+// Auth utilities - only store token, fetch user data from API
+const TOKEN_KEY = 'taskflow_token';
+
 const getAuthToken = () => {
-  const user = localStorage.getItem('taskManagerUser');
-  return user ? JSON.parse(user).token : null;
+  return localStorage.getItem(TOKEN_KEY);
+};
+
+const setAuthToken = (token) => {
+  localStorage.setItem(TOKEN_KEY, token);
+};
+
+const clearAuthToken = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  // Clear all old data
+  localStorage.removeItem('taskManagerUser');
+  localStorage.removeItem('taskflow_auth');
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('currentUser');
 };
 
 // API request helper
@@ -149,9 +165,26 @@ export const notificationsAPI = {
     }),
 };
 
+// Logs API (Admin only)
+export const logsAPI = {
+  getLogs: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/logs${query ? `?${query}` : ''}`);
+  },
+};
+
+// System API (Admin only)
+export const systemAPI = {
+  getSystemMetrics: () => apiRequest('/system/metrics'),
+  getActivityLogs: () => apiRequest('/system/activity-logs'),
+};
+
+// Export auth utilities
+export { getAuthToken, setAuthToken, clearAuthToken };
+
 // Example usage in components:
 /*
-import { tasksAPI } from '../utils/api';
+import { tasksAPI, getAuthData } from '../utils/api';
 
 // In your component
 const loadTasks = async () => {

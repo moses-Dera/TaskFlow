@@ -1,34 +1,66 @@
+import { useState, useEffect } from 'react';
 import { Users, Server, Activity, Database, MoreVertical } from 'lucide-react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ProgressBar from '../components/charts/ProgressBar';
+import { teamAPI } from '../utils/api';
 
 export default function AdminDashboard() {
+  const [employees, setEmployees] = useState([]);
+  const [performance, setPerformance] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadAdminData = async () => {
+      try {
+        // Get employees
+        const employeesResponse = await teamAPI.getEmployees();
+        if (employeesResponse.success) {
+          setEmployees(employeesResponse.data);
+        }
+
+        // Get performance metrics
+        const performanceResponse = await teamAPI.getPerformance();
+        if (performanceResponse.success) {
+          setPerformance(performanceResponse.data);
+        }
+      } catch (error) {
+        console.error('Failed to load admin data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAdminData();
+  }, []);
+
   const systemMetrics = [
-    { label: 'Active Users Today', value: '1,247', trend: '+12%', trendUp: true },
-    { label: 'Total Users', value: '5,832', trend: '+4%', trendUp: true },
-    { label: 'System Uptime', value: '99.9%', trend: '0%', trendUp: true },
-    { label: 'API Requests', value: '45.2K', trend: '-2%', trendUp: false },
+    { label: 'Total Tasks', value: performance?.total_tasks?.toString() || '0', trend: '+12%', trendUp: true },
+    { label: 'Completed Tasks', value: performance?.completed_tasks?.toString() || '0', trend: '+4%', trendUp: true },
+    { label: 'Completion Rate', value: `${performance?.completion_rate || 0}%`, trend: '0%', trendUp: true },
+    { label: 'Active Employees', value: employees.length.toString(), trend: '-2%', trendUp: false },
   ];
 
-  const users = [
-    { name: 'John Smith', role: 'Manager', email: 'john@company.com', lastLogin: '2 hours ago', status: 'Active' },
-    { name: 'Sarah Johnson', role: 'Employee', email: 'sarah@company.com', lastLogin: '1 day ago', status: 'Active' },
-    { name: 'Mike Wilson', role: 'Employee', email: 'mike@company.com', lastLogin: '3 days ago', status: 'Suspended' },
-  ];
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading admin data...</p>
+        </div>
+      </div>
+    );
+  }
 
   const resourceUsage = [
-    { name: 'DB Storage', used: 75, total: 100, unit: 'GB' },
-    { name: 'CPU Load', used: 45, total: 100, unit: '%' },
-    { name: 'Memory Usage', used: 68, total: 100, unit: '%' },
+    { name: 'DB Storage', used: performance?.db_storage || 0, total: 100, unit: 'GB' },
+    { name: 'CPU Load', used: performance?.cpu_load || 0, total: 100, unit: '%' },
+    { name: 'Memory Usage', used: performance?.memory_usage || 0, total: 100, unit: '%' },
   ];
 
-  const activityLogs = [
-    { time: '10:30 AM', action: 'User John Smith created' },
-    { time: '09:15 AM', action: 'Manager role updated' },
-    { time: '08:45 AM', action: 'Global settings changed' },
-    { time: '08:20 AM', action: 'User Sarah Johnson logged in' },
+  const activityLogs = performance?.activity_logs || [
+    { time: 'Loading...', action: 'Fetching activity logs...' },
   ];
 
   return (
@@ -65,22 +97,25 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {users.map((user) => (
-                <div key={user.email} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
+              {employees.map((employee) => (
+                <div key={employee.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                       <span className="text-white text-sm font-medium">
-                        {user.name.split(' ').map(n => n[0]).join('')}
+                        {employee.name.split(' ').map(n => n[0]).join('')}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{user.name}</p>
-                      <p className="text-sm text-gray-500">{user.email}</p>
+                      <p className="font-medium text-gray-900">{employee.name}</p>
+                      <p className="text-sm text-gray-500">{employee.email}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <Badge variant={user.status === 'Active' ? 'success' : 'error'}>
-                      {user.status}
+                    <Badge variant="success">
+                      {employee.role}
+                    </Badge>
+                    <Badge variant="primary">
+                      {employee.performance_score}
                     </Badge>
                     <button className="p-1 text-gray-400 hover:text-gray-600">
                       <MoreVertical className="w-4 h-4" />

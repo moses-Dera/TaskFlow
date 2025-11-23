@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, MessageSquare, TrendingUp, Video, Users, Calendar } from 'lucide-react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -6,28 +6,114 @@ import Badge from '../components/ui/Badge';
 import DonutChart from '../components/charts/DonutChart';
 import SimpleLineChart from '../components/charts/LineChart';
 import MeetingScheduler from '../components/ui/MeetingScheduler';
+import { teamAPI, tasksAPI } from '../utils/api';
 
 export default function ManagerDashboard({ onNavigate }) {
   const [showMeetingScheduler, setShowMeetingScheduler] = useState(false);
-  const taskStatusData = [
-    { name: 'Completed', value: 45 },
-    { name: 'In Progress', value: 30 },
-    { name: 'Overdue', value: 8 },
-  ];
+  const [employees, setEmployees] = useState([]);
+  const [performance, setPerformance] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [taskStatusData, setTaskStatusData] = useState([]);
+  const [productivityData, setProductivityData] = useState([]);
+  const [taskForm, setTaskForm] = useState({
+    title: '',
+    assigned_to: '',
+    description: '',
+    due_date: '',
+    priority: 'medium'
+  });
+  const [submitting, setSubmitting] = useState(false);
 
-  const productivityData = [
-    { name: 'Week 1', value: 12 },
-    { name: 'Week 2', value: 19 },
-    { name: 'Week 3', value: 15 },
-    { name: 'Week 4', value: 22 },
-  ];
+  useEffect(() => {
+    const loadTeamData = async () => {
+      try {
+        // Get employees
+        const employeesResponse = await teamAPI.getEmployees();
+        if (employeesResponse.success) {
+          const employeeData = employeesResponse.data.map(emp => ({
+            ...emp,
+            avatar: emp.name.split(' ').map(n => n[0]).join('').toUpperCase()
+          }));
+          setEmployees(employeeData);
+        }
 
-  const employees = [
-    { name: 'Alice Johnson', assigned: 12, completed: 10, score: 'A', avatar: 'AJ' },
-    { name: 'Bob Smith', assigned: 8, completed: 7, score: 'B+', avatar: 'BS' },
-    { name: 'Carol Davis', assigned: 15, completed: 12, score: 'A-', avatar: 'CD' },
-    { name: 'David Wilson', assigned: 6, completed: 4, score: 'B', avatar: 'DW' },
-  ];
+        // Get performance metrics
+        const performanceResponse = await teamAPI.getPerformance();
+        if (performanceResponse.success) {
+          const perf = performanceResponse.data;
+          setPerformance(perf);
+          
+          // Set task status data
+          setTaskStatusData([
+            { name: 'Completed', value: perf.completed_tasks },
+            { name: 'In Progress', value: perf.in_progress_tasks },
+            { name: 'Overdue', value: perf.overdue_tasks },
+          ]);
+          
+          // Use real productivity data from backend
+          const productivityWeeks = perf.weekly_productivity || [
+            { name: 'Week 1', value: Math.floor(perf.completed_tasks * 0.2) },
+            { name: 'Week 2', value: Math.floor(perf.completed_tasks * 0.3) },
+            { name: 'Week 3', value: Math.floor(perf.completed_tasks * 0.25) },
+            { name: 'Week 4', value: Math.floor(perf.completed_tasks * 0.25) },
+          ];
+          setProductivityData(productivityWeeks);
+        }
+      } catch (error) {
+        console.error('Failed to load team data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTeamData();
+  }, []);
+
+  const handleTaskSubmit = async (e) => {
+    e.preventDefault();
+    if (!taskForm.title || !taskForm.assigned_to) {
+      alert('Please fill in title and assign to an employee');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await tasksAPI.createTask(taskForm);
+      if (response.success) {
+        alert('Task assigned successfully!');
+        setTaskForm({
+          title: '',
+          assigned_to: '',
+          description: '',
+          due_date: '',
+          priority: 'medium'
+        });
+        // Reload team data to update stats
+        window.location.reload();
+      } else {
+        alert('Failed to assign task: ' + (response.error || 'Unknown error'));
+      }
+    } catch (error) {
+      alert('Failed to assign task: ' + error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (field, value) => {
+    setTaskForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading team data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 bg-gray-50 dark:bg-gray-900 min-h-screen p-6 -m-6">
@@ -56,7 +142,19 @@ export default function ManagerDashboard({ onNavigate }) {
             <Calendar className="w-4 h-4 mr-2" />
             Schedule Meeting
           </Button>
-          <Button>
+          <Button
+            onClick={() => {
+              const taskForm = document.getElementById('task-assignment-form');
+              if (taskForm) {
+                taskForm.scrollIntoView({ behavior: 'smooth' });
+                // Focus on the title input
+                setTimeout(() => {
+                  const titleInput = taskForm.querySelector('input[type="text"]');
+                  if (titleInput) titleInput.focus();
+                }, 500);
+              }
+            }}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Assign Task
           </Button>
@@ -67,10 +165,10 @@ export default function ManagerDashboard({ onNavigate }) {
       <Card>
         <CardContent className="p-6">
           <div className="text-center">
-            <div className="text-4xl font-bold text-gray-900 dark:text-white mb-2">88%</div>
+            <div className="text-4xl font-bold text-gray-900 dark:text-white mb-2">{performance?.completion_rate || 0}%</div>
             <div className="text-lg text-gray-600 dark:text-gray-300 mb-4">Team Completion Rate</div>
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-green-500 h-2 rounded-full" style={{ width: '88%' }}></div>
+              <div className="bg-green-500 h-2 rounded-full" style={{ width: `${performance?.completion_rate || 0}%` }}></div>
             </div>
           </div>
         </CardContent>
@@ -121,7 +219,7 @@ export default function ManagerDashboard({ onNavigate }) {
         <CardContent>
           <div className="space-y-4">
             {employees.map((employee) => (
-              <div key={employee.name} className="flex items-center justify-between p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+              <div key={employee.id} className="flex items-center justify-between p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
                     <span className="text-white font-medium">{employee.avatar}</span>
@@ -129,12 +227,12 @@ export default function ManagerDashboard({ onNavigate }) {
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">{employee.name}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {employee.completed}/{employee.assigned} tasks completed
+                      {employee.tasks_completed}/{employee.tasks_assigned} tasks completed
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Badge variant="primary">{employee.score}</Badge>
+                  <Badge variant="primary">{employee.performance_score}</Badge>
                   <button 
                     onClick={() => {
                       const meetUrl = `https://meet.google.com/new`;
@@ -159,48 +257,74 @@ export default function ManagerDashboard({ onNavigate }) {
       </Card>
 
       {/* Quick Task Assignment */}
-      <Card>
+      <Card id="task-assignment-form">
         <CardHeader>
           <CardTitle>Quick Task Assignment</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-4">
+          <form onSubmit={handleTaskSubmit} className="grid grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Title</label>
               <input 
                 type="text" 
+                value={taskForm.title}
+                onChange={(e) => handleInputChange('title', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Enter task title"
+                required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Assign To</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-                <option>Select employee</option>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Assign To</label>
+              <select 
+                value={taskForm.assigned_to}
+                onChange={(e) => handleInputChange('assigned_to', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                required
+              >
+                <option value="">Select employee</option>
                 {employees.map(emp => (
-                  <option key={emp.name} value={emp.name}>{emp.name}</option>
+                  <option key={emp.id} value={emp.id}>{emp.name}</option>
                 ))}
               </select>
             </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</label>
+              <select 
+                value={taskForm.priority}
+                onChange={(e) => handleInputChange('priority', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
               <textarea 
                 rows={3}
+                value={taskForm.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Task description"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Due Date</label>
               <input 
                 type="date" 
+                value={taskForm.due_date}
+                onChange={(e) => handleInputChange('due_date', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
             <div className="flex items-end">
-              <Button className="w-full">Create Task</Button>
+              <Button type="submit" disabled={submitting} className="w-full">
+                {submitting ? 'Creating Task...' : 'Create Task'}
+              </Button>
             </div>
-          </div>
+          </form>
         </CardContent>
       </Card>
 

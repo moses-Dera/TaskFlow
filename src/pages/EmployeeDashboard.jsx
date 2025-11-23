@@ -1,36 +1,121 @@
 import { CheckCircle, Clock, MessageSquare, Calendar, Paperclip, Upload, CalendarPlus } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { CircularProgress } from '../components/charts/ProgressBar';
+import { tasksAPI, authAPI } from '../utils/api';
 
 export default function EmployeeDashboard({ onNavigate }) {
   const [activeTab, setActiveTab] = useState('today');
+  const [tasks, setTasks] = useState({ today: [], week: [], later: [] });
+  const [focusTask, setFocusTask] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ completed: 0, streak: 0, completionRate: 0 });
 
-  const focusTask = {
-    title: 'Complete Q4 Sales Report',
-    dueDate: 'Today, 5:00 PM',
-    description: 'Compile and analyze Q4 sales data for management review',
-    priority: 'High'
-  };
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        const response = await tasksAPI.getTasks();
+        if (response.success) {
+          const allTasks = response.data;
+          
+          // Categorize tasks
+          const today = new Date();
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const nextWeek = new Date(today);
+          nextWeek.setDate(nextWeek.getDate() + 7);
+          
+          const todayTasks = allTasks.filter(task => {
+            if (!task.due_date) return false;
+            const dueDate = new Date(task.due_date);
+            return dueDate.toDateString() === today.toDateString();
+          });
+          
+          const weekTasks = allTasks.filter(task => {
+            if (!task.due_date) return false;
+            const dueDate = new Date(task.due_date);
+            return dueDate > today && dueDate <= nextWeek;
+          });
+          
+          const laterTasks = allTasks.filter(task => {
+            if (!task.due_date) return true;
+            const dueDate = new Date(task.due_date);
+            return dueDate > nextWeek;
+          });
+          
+          setTasks({
+            today: todayTasks,
+            week: weekTasks,
+            later: laterTasks
+          });
+          
+          // Set focus task (most urgent)
+          const urgentTask = todayTasks.find(task => task.priority === 'high' && task.status !== 'completed') ||
+                            todayTasks.find(task => task.status !== 'completed') ||
+                            weekTasks.find(task => task.priority === 'high' && task.status !== 'completed');
+          
+          if (urgentTask) {
+            setFocusTask({
+              ...urgentTask,
+              dueDate: new Date(urgentTask.due_date).toLocaleDateString(),
+              priority: urgentTask.priority.charAt(0).toUpperCase() + urgentTask.priority.slice(1)
+            });
+          }
+          
+          // Calculate stats
+          const completed = allTasks.filter(task => task.status === 'completed').length;
+          const total = allTasks.length;
+          const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+          
+          // Calculate streak (consecutive days of completed tasks)
+          const tasksByDate = {};
+          allTasks.forEach(task => {
+            if (task.completed_at) {
+              const date = new Date(task.completed_at).toDateString();
+              tasksByDate[date] = (tasksByDate[date] || 0) + 1;
+            }
+          });
+          
+          let streak = 0;
+          const currentDate = new Date();
+          for (let i = 0; i < 365; i++) {
+            const checkDate = new Date(currentDate);
+            checkDate.setDate(checkDate.getDate() - i);
+            if (tasksByDate[checkDate.toDateString()]) {
+              streak++;
+            } else if (i > 0) {
+              break;
+            }
+          }
+          
+          setStats({
+            completed,
+            streak,
+            completionRate
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load tasks:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const tasks = {
-    today: [
-      { id: 1, title: 'Complete Q4 Sales Report', dueDate: '5:00 PM', status: 'in-progress', priority: 'high' },
-      { id: 2, title: 'Review client feedback', dueDate: '3:00 PM', status: 'completed', priority: 'medium' },
-      { id: 3, title: 'Update project documentation', dueDate: '6:00 PM', status: 'pending', priority: 'low' },
-    ],
-    week: [
-      { id: 4, title: 'Prepare presentation slides', dueDate: 'Tomorrow', status: 'pending', priority: 'high' },
-      { id: 5, title: 'Team meeting preparation', dueDate: 'Wednesday', status: 'pending', priority: 'medium' },
-      { id: 6, title: 'Code review for new feature', dueDate: 'Friday', status: 'pending', priority: 'medium' },
-    ],
-    later: [
-      { id: 7, title: 'Annual performance review', dueDate: 'Next week', status: 'pending', priority: 'high' },
-      { id: 8, title: 'Training course completion', dueDate: 'Next month', status: 'pending', priority: 'low' },
-    ]
-  };
+    loadTasks();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your tasks...</p>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -72,14 +157,14 @@ export default function EmployeeDashboard({ onNavigate }) {
                 <Clock className="w-5 h-5 text-primary" />
                 <span className="text-sm font-medium text-primary">Most Urgent</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{focusTask.title}</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-3">{focusTask.description}</p>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{focusTask?.title || 'No urgent tasks'}</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-3">{focusTask?.description || 'Great job! No urgent tasks at the moment.'}</p>
               <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-center">
                   <Calendar className="w-4 h-4 mr-1" />
-                  {focusTask.dueDate}
+                  {focusTask?.dueDate || 'No due date'}
                 </div>
-                <Badge variant="error">{focusTask.priority} Priority</Badge>
+                {focusTask && <Badge variant="error">{focusTask.priority} Priority</Badge>}
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:space-x-3 w-full lg:w-auto">
@@ -89,7 +174,7 @@ export default function EmployeeDashboard({ onNavigate }) {
                 onClick={() => {
                   const startDate = new Date();
                   const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
-                  const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(focusTask.title)}&dates=${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent(focusTask.description)}`;
+                  const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(focusTask?.title || 'Task')}&dates=${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent(focusTask?.description || 'Task from TaskFlow')}`;
                   window.open(googleCalendarUrl, '_blank');
                 }}
               >
@@ -218,11 +303,11 @@ export default function EmployeeDashboard({ onNavigate }) {
             <CardContent className="p-6">
               <div className="text-center space-y-4">
                 <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">12</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">Tasks Completed This Week</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.completed}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">Tasks Completed</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-primary">7</div>
+                  <div className="text-2xl font-bold text-primary">{stats.streak}</div>
                   <div className="text-sm text-gray-600 dark:text-gray-300">Streak Days</div>
                 </div>
               </div>

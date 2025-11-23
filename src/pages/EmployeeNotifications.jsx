@@ -1,14 +1,29 @@
+import { useState, useEffect } from 'react';
 import { Bell, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
+import { notificationsAPI } from '../utils/api';
 
 export default function EmployeeNotifications() {
-  const notifications = [
-    { id: 1, type: 'task', title: 'New task assigned', message: 'Complete Q4 Sales Report', time: '2 hours ago', read: false },
-    { id: 2, type: 'reminder', title: 'Task due soon', message: 'Review client feedback due in 1 hour', time: '1 hour ago', read: false },
-    { id: 3, type: 'completed', title: 'Task completed', message: 'Project documentation updated', time: '3 hours ago', read: true },
-    { id: 4, type: 'message', title: 'New message', message: 'Manager sent you a message', time: '5 hours ago', read: true },
-  ];
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        const response = await notificationsAPI.getNotifications();
+        if (response.success) {
+          setNotifications(response.data || []);
+        }
+      } catch (error) {
+        console.error('Failed to load notifications:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadNotifications();
+  }, []);
 
   const getIcon = (type) => {
     switch (type) {
@@ -32,26 +47,35 @@ export default function EmployeeNotifications() {
           <CardTitle>Recent Notifications</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={`flex items-start space-x-3 p-3 rounded-lg border ${
-                  notification.read ? 'bg-white border-gray-200' : 'bg-blue-50 border-blue-200'
-                }`}
-              >
-                {getIcon(notification.type)}
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium text-gray-900">{notification.title}</p>
-                    {!notification.read && <Badge variant="primary">New</Badge>}
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
-                  <p className="text-xs text-gray-500 mt-2">{notification.time}</p>
-                </div>
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading notifications...</p>
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`flex items-start space-x-3 p-3 rounded-lg border ${
+                    notification.read ? 'bg-white border-gray-200' : 'bg-blue-50 border-blue-200'
+                  }`}
+                >
+                  {getIcon(notification.type)}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium text-gray-900">{notification.title}</p>
+                      {!notification.read && <Badge variant="primary">New</Badge>}
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                    <p className="text-xs text-gray-500 mt-2">{notification.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -8,6 +8,12 @@ import EmployeeDashboard from './pages/EmployeeDashboard';
 import EmployeeChat from './pages/EmployeeChat';
 import EmployeeNotifications from './pages/EmployeeNotifications';
 import EmployeePerformance from './pages/EmployeePerformance';
+import TeamPerformance from './pages/TeamPerformance';
+import AssignTasks from './pages/AssignTasks';
+import UserManagement from './pages/UserManagement';
+import AccessRoles from './pages/AccessRoles';
+import ApplicationLogs from './pages/ApplicationLogs';
+import GlobalSettings from './pages/GlobalSettings';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
@@ -45,9 +51,15 @@ function App() {
     
     switch (user.role) {
       case 'admin':
+        if (currentPath === '/admin/users') return <UserManagement />;
+        if (currentPath === '/admin/roles') return <AccessRoles />;
+        if (currentPath === '/admin/logs') return <ApplicationLogs />;
+        if (currentPath === '/admin/settings') return <GlobalSettings />;
         return <AdminDashboard />;
       case 'manager':
         if (currentPath === '/manager/chat') return <ManagerChat />;
+        if (currentPath === '/manager/performance') return <TeamPerformance />;
+        if (currentPath === '/manager/tasks') return <AssignTasks />;
         return <ManagerDashboard onNavigate={handleNavigation} />;
       case 'employee':
       default:

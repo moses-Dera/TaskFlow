@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Eye, EyeOff, UserPlus } from 'lucide-react';
 import Button from '../components/ui/Button';
-import { authAPI } from '../utils/api';
+import { authAPI, setAuthToken } from '../utils/api';
 
 export default function SignUp({ onSignUp, onSwitchToLogin }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -35,10 +35,7 @@ export default function SignUp({ onSignUp, onSwitchToLogin }) {
       
       const response = await authAPI.signup(userData);
       if (response.success) {
-        localStorage.setItem('taskManagerUser', JSON.stringify({
-          token: response.token,
-          ...response.user
-        }));
+        setAuthToken(response.token);
         onSignUp(response.user);
       } else {
         setError(response.error || 'Signup failed');
