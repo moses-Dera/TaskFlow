@@ -6,7 +6,7 @@ import Badge from '../components/ui/Badge';
 import DonutChart from '../components/charts/DonutChart';
 import SimpleLineChart from '../components/charts/LineChart';
 import MeetingScheduler from '../components/ui/MeetingScheduler';
-import { teamAPI, tasksAPI } from '../utils/api';
+import { teamAPI, tasksAPI, authAPI } from '../utils/api';
 
 export default function ManagerDashboard({ onNavigate }) {
   const [showMeetingScheduler, setShowMeetingScheduler] = useState(false);
@@ -140,6 +140,13 @@ export default function ManagerDashboard({ onNavigate }) {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 sm:space-x-3">
+          <Button 
+            variant="primary"
+            onClick={() => onNavigate && onNavigate('/user-management')}
+          >
+            <Users className="w-4 h-4 mr-2" />
+            Add Employee
+          </Button>
           <Button 
             variant="outline"
             onClick={() => {

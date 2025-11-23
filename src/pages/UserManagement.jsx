@@ -12,19 +12,18 @@ export default function UserManagement() {
   const [inviteRole, setInviteRole] = useState('employee');
   const [inviting, setInviting] = useState(false);
 
-  useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const response = await teamAPI.getEmployees();
-        if (response.success) {
-          setUsers(response.data);
-        }
-      } catch (error) {
-        console.error('Failed to load users:', error);
-      } finally {
-        setLoading(false);
+  const loadUsers = async () => {
+    try {
+      const response = await teamAPI.getEmployees();
+      if (response.success) {
+        setUsers(response.data);
       }
-    };
+    } catch (error) {
+      console.error('Failed to load users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInviteUser = async (e) => {
     e.preventDefault();
@@ -48,6 +47,7 @@ export default function UserManagement() {
     }
   };
 
+  useEffect(() => {
     loadUsers();
   }, []);
 
