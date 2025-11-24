@@ -139,21 +139,22 @@ export default function ManagerDashboard({ onNavigate }) {
 
   return (
     <div className="space-y-8 bg-gray-50 dark:bg-gray-900 min-h-screen p-6 -m-6">
-      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+      <div className="flex flex-col gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Team Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">
+          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white">Team Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">
             Monitor team performance and assign tasks
             {user?.company && (
-              <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+              <span className="block sm:inline ml-0 sm:ml-2 mt-1 sm:mt-0 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full w-fit">
                 {user.company}
               </span>
             )}
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 sm:space-x-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
           <Button 
             variant="primary"
+            className="w-full text-sm"
             onClick={() => {
               console.log('Add Employee clicked, onNavigate available:', !!onNavigate);
               if (onNavigate) {
@@ -168,6 +169,7 @@ export default function ManagerDashboard({ onNavigate }) {
           </Button>
           <Button 
             variant="outline"
+            className="w-full text-sm"
             onClick={async () => {
               try {
                 const now = new Date();
@@ -196,16 +198,20 @@ export default function ManagerDashboard({ onNavigate }) {
             }}
           >
             <Video className="w-4 h-4 mr-2" />
-            Start Team Call
+            <span className="hidden sm:inline">Start Team Call</span>
+            <span className="sm:hidden">Team Call</span>
           </Button>
           <Button 
             variant="outline"
+            className="w-full text-sm"
             onClick={() => setShowMeetingScheduler(true)}
           >
             <Calendar className="w-4 h-4 mr-2" />
-            Schedule Meeting
+            <span className="hidden sm:inline">Schedule Meeting</span>
+            <span className="sm:hidden">Schedule</span>
           </Button>
           <Button
+            className="w-full text-sm"
             onClick={() => {
               const taskForm = document.getElementById('task-assignment-form');
               if (taskForm) {
@@ -287,41 +293,43 @@ export default function ManagerDashboard({ onNavigate }) {
         <CardContent>
           <div className="space-y-4">
             {employees.map((employee) => (
-              <div key={employee.id} className="flex items-center justify-between p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                    <span className="text-white font-medium">{employee.avatar}</span>
+              <div key={employee.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer gap-3">
+                <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+                  <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-medium text-sm">{employee.avatar}</span>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">{employee.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-900 dark:text-white truncate">{employee.name}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {employee.tasks_completed}/{employee.tasks_assigned} tasks completed
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-between sm:justify-end space-x-2 flex-shrink-0">
                   <Badge variant="primary">{employee.performance_score}</Badge>
-                  <button 
-                    onClick={() => {
-                      const now = new Date();
-                      const endTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 min meeting
-                      const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`1-on-1 with ${employee.name}`)}&dates=${now.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent('1-on-1 meeting with Google Meet')}&add=${employee.email}&conf=1`;
-                      window.open(calendarUrl, '_blank');
-                    }}
-                    className="p-2 text-gray-400 hover:text-primary"
-                    title="Start 1-on-1 meeting"
-                  >
-                    <Video className="w-4 h-4" />
-                  </button>
-                  <button 
-                    onClick={() => onNavigate && onNavigate('/manager/chat')}
-                    className="p-2 text-gray-400 hover:text-primary"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                  </button>
+                  <div className="flex space-x-1">
+                    <button 
+                      onClick={() => {
+                        const now = new Date();
+                        const endTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 min meeting
+                        const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`1-on-1 with ${employee.name}`)}&dates=${now.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent('1-on-1 meeting with Google Meet')}&add=${employee.email}&conf=1`;
+                        window.open(calendarUrl, '_blank');
+                      }}
+                      className="p-2 text-gray-400 hover:text-primary"
+                      title="Start 1-on-1 meeting"
+                    >
+                      <Video className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => onNavigate && onNavigate('/manager/chat')}
+                      className="p-2 text-gray-400 hover:text-primary"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            ))}
+            ))
           </div>
         </CardContent>
       </Card>
@@ -332,8 +340,8 @@ export default function ManagerDashboard({ onNavigate }) {
           <CardTitle>Quick Task Assignment</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleTaskSubmit} className="grid grid-cols-1 gap-4">
-            <div>
+          <form onSubmit={handleTaskSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Title</label>
               <input 
                 type="text" 
@@ -370,7 +378,7 @@ export default function ManagerDashboard({ onNavigate }) {
                 <option value="high">High</option>
               </select>
             </div>
-            <div>
+            <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
               <textarea 
                 rows={3}
