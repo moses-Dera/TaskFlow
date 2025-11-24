@@ -367,7 +367,7 @@ export default function ManagerDashboard({ onNavigate }) {
               >
                 <option value="">Select employee</option>
                 {employees.map(emp => (
-                  <option key={emp.id} value={emp.id}>{emp.name}</option>
+                  <option key={emp.id} value={emp.name}>{emp.name}</option>
                 ))}
               </select>
             </div>
