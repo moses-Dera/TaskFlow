@@ -35,11 +35,11 @@ export default function ManagerDashboard({ onNavigate }) {
           teamAPI.getEmployees(),
           authAPI.getCurrentUser()
         ]);
-        
+
         if (userResponse.success) {
           setUser(userResponse.user);
         }
-        
+
         const employeesResponse2 = employeesResponse;
         if (employeesResponse2.success) {
           const employeeData = employeesResponse2.data.map(emp => ({
@@ -55,22 +55,22 @@ export default function ManagerDashboard({ onNavigate }) {
           const perf = performanceResponse.data;
           console.log('Performance data received:', perf);
           setPerformance(perf);
-          
+
           // Set task status data with fallbacks
           const taskData = [
             { name: 'Completed', value: perf.completed_tasks || 0 },
             { name: 'In Progress', value: perf.in_progress_tasks || 0 },
             { name: 'Overdue', value: perf.overdue_tasks || 0 },
           ];
-          
+
           // If no tasks exist, show placeholder data
           const hasData = taskData.some(item => item.value > 0);
           if (!hasData) {
             taskData[0].value = 1; // Show at least one segment
           }
-          
+
           setTaskStatusData(taskData);
-          
+
           // Generate productivity trend data
           const completedTasks = perf.completed_tasks || 0;
           const productivityWeeks = [
@@ -152,7 +152,7 @@ export default function ManagerDashboard({ onNavigate }) {
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-          <Button 
+          <Button
             variant="primary"
             className="w-full text-sm"
             onClick={() => {
@@ -167,20 +167,22 @@ export default function ManagerDashboard({ onNavigate }) {
             <Users className="w-4 h-4 mr-2" />
             Add Employee
           </Button>
-          <Button 
+          <Button
             variant="outline"
             className="w-full text-sm"
             onClick={async () => {
               try {
                 const now = new Date();
                 const endTime = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour meeting
-                
+
                 // Create Google Calendar event with all team members
                 const attendeeEmails = employees.map(emp => emp.email).join(',');
-                const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Team Meeting')}&dates=${now.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent('Team meeting with Google Meet video call')}&add=${attendeeEmails}&conf=1`;
-                
+                const nowISO = now.toISOString().replace(/[-:]/g, '').split('.')[0];
+                const endISO = endTime.toISOString().replace(/[-:]/g, '').split('.')[0];
+                const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Team Meeting')}&dates=${nowISO}Z/${endISO}Z&details=${encodeURIComponent('Team meeting with Google Meet video call')}&add=${attendeeEmails}&conf=1`;
+
                 window.open(calendarUrl, '_blank');
-                
+
                 // Send meeting notification to all employees
                 const meetingData = {
                   title: 'Team Meeting',
@@ -188,9 +190,9 @@ export default function ManagerDashboard({ onNavigate }) {
                   meeting_url: 'Google Calendar event created',
                   started_at: now.toISOString()
                 };
-                
+
                 await teamAPI.notifyTeamMeeting(meetingData);
-                
+
                 success('Calendar event created! All team members will receive invitations.');
               } catch (error) {
                 error('Failed to create meeting');
@@ -201,7 +203,7 @@ export default function ManagerDashboard({ onNavigate }) {
             <span className="hidden sm:inline">Start Team Call</span>
             <span className="sm:hidden">Team Call</span>
           </Button>
-          <Button 
+          <Button
             variant="outline"
             className="w-full text-sm"
             onClick={() => setShowMeetingScheduler(true)}
@@ -308,11 +310,13 @@ export default function ManagerDashboard({ onNavigate }) {
                 <div className="flex items-center justify-between sm:justify-end space-x-2 flex-shrink-0">
                   <Badge variant="primary">{employee.performance_score}</Badge>
                   <div className="flex space-x-1">
-                    <button 
+                    <button
                       onClick={() => {
                         const now = new Date();
                         const endTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 min meeting
-                        const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`1-on-1 with ${employee.name}`)}&dates=${now.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endTime.toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent('1-on-1 meeting with Google Meet')}&add=${employee.email}&conf=1`;
+                        const nowISO = now.toISOString().replace(/[-:]/g, '').split('.')[0];
+                        const endISO = endTime.toISOString().replace(/[-:]/g, '').split('.')[0];
+                        const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`1-on-1 with ${employee.name}`)}&dates=${nowISO}Z/${endISO}Z&details=${encodeURIComponent('1-on-1 meeting with Google Meet')}&add=${employee.email}&conf=1`;
                         window.open(calendarUrl, '_blank');
                       }}
                       className="p-2 text-gray-400 hover:text-primary"
@@ -320,7 +324,7 @@ export default function ManagerDashboard({ onNavigate }) {
                     >
                       <Video className="w-4 h-4" />
                     </button>
-                    <button 
+                    <button
                       onClick={() => onNavigate && onNavigate('/manager/chat')}
                       className="p-2 text-gray-400 hover:text-primary"
                     >
@@ -330,6 +334,7 @@ export default function ManagerDashboard({ onNavigate }) {
                 </div>
               </div>
             ))
+          }
           </div>
         </CardContent>
       </Card>
@@ -343,8 +348,8 @@ export default function ManagerDashboard({ onNavigate }) {
           <form onSubmit={handleTaskSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Title</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={taskForm.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-600"
@@ -354,7 +359,7 @@ export default function ManagerDashboard({ onNavigate }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Assign To</label>
-              <select 
+              <select
                 value={taskForm.assigned_to}
                 onChange={(e) => handleInputChange('assigned_to', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-600"
@@ -368,7 +373,7 @@ export default function ManagerDashboard({ onNavigate }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</label>
-              <select 
+              <select
                 value={taskForm.priority}
                 onChange={(e) => handleInputChange('priority', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-600"
@@ -380,7 +385,7 @@ export default function ManagerDashboard({ onNavigate }) {
             </div>
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
-              <textarea 
+              <textarea
                 rows={3}
                 value={taskForm.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
@@ -390,8 +395,8 @@ export default function ManagerDashboard({ onNavigate }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Due Date</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 value={taskForm.due_date}
                 onChange={(e) => handleInputChange('due_date', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-600"
@@ -407,7 +412,7 @@ export default function ManagerDashboard({ onNavigate }) {
       </Card>
 
       {showMeetingScheduler && (
-        <MeetingScheduler 
+        <MeetingScheduler
           employees={employees}
           onClose={() => setShowMeetingScheduler(false)}
         />
