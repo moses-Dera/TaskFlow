@@ -42,8 +42,9 @@ export default function SignUp({ onSignUp, onSwitchToLogin }) {
       };
       
       await onSignUp(userData);
+      // If we reach here, signup was successful and user should be logged in
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError(err.message || 'Signup failed. Please try again.');
     } finally {
       setLoading(false);
     }

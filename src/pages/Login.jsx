@@ -44,12 +44,15 @@ export default function Login({ onLogin, onBackToLanding }) {
       if (response.success) {
         setAuthToken(response.token);
         onLogin(response.user);
+        return response; // Return success response
       } else {
         setError(response.error || 'Signup failed');
+        throw new Error(response.error || 'Signup failed');
       }
     } catch (err) {
       console.error('Signup failed:', err);
-      setError('Network error. Please try again.');
+      setError(err.message || 'Network error. Please try again.');
+      throw err; // Re-throw so SignUp component can handle it
     }
   };
 
