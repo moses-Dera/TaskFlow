@@ -41,13 +41,7 @@ export default function SignUp({ onSignUp, onSwitchToLogin }) {
         company: formData.company
       };
       
-      const response = await authAPI.signup(userData);
-      if (response.success) {
-        setAuthToken(response.token);
-        onSignUp(response.user);
-      } else {
-        setError(response.error || 'Signup failed');
-      }
+      await onSignUp(userData);
     } catch (err) {
       setError('Network error. Please try again.');
     } finally {
