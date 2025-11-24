@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://task-manger-backend-z2yz.onrender.com/api';
+const API_BASE_URL = 'https://task-manger-backend-z2yz.onrender.com/api';
 
 // Auth utilities - only store token, fetch user data from API
 const TOKEN_KEY = 'taskflow_token';
@@ -25,7 +25,7 @@ const clearAuthToken = () => {
 // API request helper
 const apiRequest = async (endpoint, options = {}) => {
   const token = getAuthToken();
-  
+
   const config = {
     headers: {
       'Content-Type': 'application/json',
@@ -38,13 +38,18 @@ const apiRequest = async (endpoint, options = {}) => {
   // Add timeout for requests
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-  
+
   config.signal = controller.signal;
 
+  // Normalize URL to prevent double slashes
+  const baseUrl = API_BASE_URL.replace(/\/+$/, ''); // Remove trailing slashes
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const fullUrl = `${baseUrl}${normalizedEndpoint}`;
+
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    const response = await fetch(fullUrl, config);
     clearTimeout(timeoutId);
-    
+
     if (!response.ok) {
       let errorMessage = `HTTP error! status: ${response.status}`;
       try {
@@ -57,7 +62,7 @@ const apiRequest = async (endpoint, options = {}) => {
       }
       throw new Error(errorMessage);
     }
-    
+
     return await response.json();
   } catch (error) {
     clearTimeout(timeoutId);
@@ -71,27 +76,27 @@ const apiRequest = async (endpoint, options = {}) => {
 
 // Auth API
 export const authAPI = {
-  login: (credentials) => 
+  login: (credentials) =>
     apiRequest('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     }),
-  
-  signup: (userData) => 
+
+  signup: (userData) =>
     apiRequest('/auth/signup', {
       method: 'POST',
       body: JSON.stringify(userData),
     }),
-  
+
   getCurrentUser: () => apiRequest('/auth/me'),
-  
-  forgotPassword: (email) => 
+
+  forgotPassword: (email) =>
     apiRequest('/auth/forgot-password', {
       method: 'POST',
       body: JSON.stringify({ email }),
     }),
-  
-  resetPassword: (token, password) => 
+
+  resetPassword: (token, password) =>
     apiRequest('/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify({ token, password }),
@@ -104,42 +109,42 @@ export const tasksAPI = {
     const query = new URLSearchParams(params).toString();
     return apiRequest(`/tasks${query ? `?${query}` : ''}`);
   },
-  
+
   getTask: (id) => apiRequest(`/tasks/${id}`),
-  
-  createTask: (taskData) => 
+
+  createTask: (taskData) =>
     apiRequest('/tasks', {
       method: 'POST',
       body: JSON.stringify(taskData),
     }),
-  
-  updateTask: (id, updates) => 
+
+  updateTask: (id, updates) =>
     apiRequest(`/tasks/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
     }),
-  
+
   uploadFile: (taskId, file) => {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     return apiRequest(`/tasks/${taskId}/files`, {
       method: 'POST',
       headers: {}, // Remove Content-Type to let browser set it for FormData
       body: formData,
     });
   },
-  
+
   getTaskFiles: (taskId) => apiRequest(`/tasks/${taskId}/files`),
-  
+
   getPerformanceStats: () => apiRequest('/tasks/performance/stats'),
 };
 
 // Users API
 export const usersAPI = {
   getProfile: () => apiRequest('/users/profile'),
-  
-  updateProfile: (profileData) => 
+
+  updateProfile: (profileData) =>
     apiRequest('/users/profile', {
       method: 'PUT',
       body: JSON.stringify(profileData),
@@ -150,12 +155,12 @@ export const usersAPI = {
 export const teamAPI = {
   getEmployees: () => apiRequest('/team/employees'),
   getPerformance: () => apiRequest('/team/performance'),
-  assignTask: (taskData) => 
+  assignTask: (taskData) =>
     apiRequest('/team/assign-task', {
       method: 'POST',
       body: JSON.stringify(taskData),
     }),
-  inviteUser: (email, role = 'employee') => 
+  inviteUser: (email, role = 'employee') =>
     apiRequest('/team/invite', {
       method: 'POST',
       body: JSON.stringify({ email, role }),
@@ -182,8 +187,8 @@ export const chatAPI = {
     const query = new URLSearchParams(params).toString();
     return apiRequest(`/chat/messages${query ? `?${query}` : ''}`);
   },
-  
-  sendMessage: (messageData) => 
+
+  sendMessage: (messageData) =>
     apiRequest('/chat/messages', {
       method: 'POST',
       body: JSON.stringify(messageData),
@@ -193,13 +198,13 @@ export const chatAPI = {
 // Notifications API
 export const notificationsAPI = {
   getNotifications: () => apiRequest('/notifications'),
-  
-  markAsRead: (id) => 
+
+  markAsRead: (id) =>
     apiRequest(`/notifications/${id}/read`, {
       method: 'PUT',
     }),
-  
-  createNotification: (notificationData) => 
+
+  createNotification: (notificationData) =>
     apiRequest('/notifications', {
       method: 'POST',
       body: JSON.stringify(notificationData),
@@ -222,7 +227,7 @@ export const systemAPI = {
 
 // Fix user API
 export const fixUserAPI = {
-  fixUser: (company = 'MyCompany') => 
+  fixUser: (company = 'MyCompany') =>
     apiRequest('/fix/fix-user', {
       method: 'POST',
       body: JSON.stringify({ company }),
@@ -231,15 +236,15 @@ export const fixUserAPI = {
 
 // Settings API
 export const settingsAPI = {
-  updateSettings: (settingsData) => 
+  updateSettings: (settingsData) =>
     apiRequest('/users/settings', {
       method: 'PUT',
       body: JSON.stringify(settingsData),
     }),
-  
+
   getSettings: () => apiRequest('/users/settings'),
-  
-  changePassword: (passwordData) => 
+
+  changePassword: (passwordData) =>
     apiRequest('/users/change-password', {
       method: 'PUT',
       body: JSON.stringify(passwordData),
