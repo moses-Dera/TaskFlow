@@ -44,6 +44,8 @@ export default function Login({ onLogin, onBackToLanding }) {
       if (response.success) {
         setAuthToken(response.token);
         onLogin(response.user);
+        // Small delay to ensure state updates complete
+        await new Promise(resolve => setTimeout(resolve, 100));
         return response; // Return success response
       } else {
         setError(response.error || 'Signup failed');
