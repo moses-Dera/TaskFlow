@@ -183,6 +183,8 @@ export const teamAPI = {
 
 // Chat API
 export const chatAPI = {
+  getTeamMembers: () => apiRequest('/chat/team-members'),
+
   getMessages: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return apiRequest(`/chat/messages${query ? `?${query}` : ''}`);
