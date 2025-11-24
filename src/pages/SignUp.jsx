@@ -9,6 +9,7 @@ export default function SignUp({ onSignUp, onSwitchToLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -31,6 +32,7 @@ export default function SignUp({ onSignUp, onSwitchToLogin }) {
 
     setLoading(true);
     setError('');
+    setSuccess(false);
 
     try {
       const userData = {
@@ -42,12 +44,17 @@ export default function SignUp({ onSignUp, onSwitchToLogin }) {
       };
 
       await onSignUp(userData);
-      // If we reach here, signup was successful and user should be logged in
+      // If we reach here, signup was successful
+      setSuccess(true);
     } catch (err) {
       setError(err.message || 'Signup failed. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = () => {
+    window.location.reload();
   };
 
   return (
@@ -72,6 +79,34 @@ export default function SignUp({ onSignUp, onSwitchToLogin }) {
         {error && (
           <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
             <p className="text-red-800 dark:text-red-200 text-sm">{error}</p>
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-4 p-6 bg-green-50 dark:bg-green-900/20 border-2 border-green-500 dark:border-green-600 rounded-lg">
+            <div className="text-center">
+              <div className="mb-3">
+                <svg className="w-16 h-16 text-green-500 dark:text-green-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-green-800 dark:text-green-200 mb-2">🎉 Congratulations!</h3>
+              <p className="text-green-700 dark:text-green-300 mb-4">Your account has been created successfully!</p>
+              <div className="space-y-2">
+                <Button
+                  onClick={handleRefresh}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Refresh & Login
+                </Button>
+                <button
+                  onClick={onSwitchToLogin}
+                  className="w-full text-green-700 dark:text-green-300 hover:underline text-sm"
+                >
+                  Or click here to login manually
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
