@@ -555,7 +555,7 @@ export default function EmployeeChat() {
                   const isGroupChat = !selectedUser;
 
                   return (
-                    <div key={msg._id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} group`}>
+                    <div key={msg._id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} group relative z-10`}>
                       <div className="max-w-xs lg:max-w-md w-full relative">
                         {msg.replyTo && (
                           <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 italic truncate">

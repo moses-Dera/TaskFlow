@@ -579,7 +579,7 @@ export default function ManagerChat() {
                   const isGroupChat = !selectedUser;
 
                   return (
-                    <div key={msg._id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} group`}>
+                    <div key={msg._id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} group relative z-10`}>
                       <div className="max-w-xs lg:max-w-md w-full relative">
                         {/* Reply indicator */}
                         {msg.replyTo && (
