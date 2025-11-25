@@ -48,7 +48,23 @@ export default function ManagerChat() {
         const messagesResponse = await chatAPI.getMessages(params);
 
         if (messagesResponse.success) {
-          setMessages(messagesResponse.data || []);
+          let filteredMessages = messagesResponse.data || [];
+          
+          // Frontend filtering as fallback
+          if (selectedUser) {
+            // Direct messages: filter by recipient_id
+            filteredMessages = filteredMessages.filter(msg => 
+              (msg.recipient_id && msg.recipient_id._id === selectedUser._id) ||
+              (msg.sender_id._id === selectedUser._id && msg.recipient_id && msg.recipient_id._id === currentUser?.id)
+            );
+          } else {
+            // Group messages: no recipient_id or type is group
+            filteredMessages = filteredMessages.filter(msg => 
+              !msg.recipient_id || msg.type === 'group'
+            );
+          }
+          
+          setMessages(filteredMessages);
         }
       } catch (error) {
         console.error('Failed to load messages:', error);
