@@ -305,6 +305,27 @@ export default function ManagerDashboard({ onNavigate }) {
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {employee.tasks_completed}/{employee.tasks_assigned} tasks completed
                     </p>
+                    <button 
+                      onClick={async () => {
+                        try {
+                          const tasksResponse = await tasksAPI.getTasks({ assigned_to: employee.id });
+                          if (tasksResponse.success) {
+                            const completedTasks = tasksResponse.data.filter(t => t.status === 'completed');
+                            if (completedTasks.length > 0) {
+                              const taskList = completedTasks.map(t => `• ${t.title}`).join('\n');
+                              success(`Completed tasks by ${employee.name}:\n${taskList}`);
+                            } else {
+                              error(`No completed tasks by ${employee.name}`);
+                            }
+                          }
+                        } catch (err) {
+                          error('Failed to load employee tasks');
+                        }
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-800 mt-1"
+                    >
+                      View Submitted Tasks
+                    </button>
                   </div>
                 </div>
                 <div className="flex items-center justify-between sm:justify-end space-x-2 flex-shrink-0">

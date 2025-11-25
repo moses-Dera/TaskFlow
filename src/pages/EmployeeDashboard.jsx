@@ -347,7 +347,24 @@ export default function EmployeeDashboard({ onNavigate }) {
                       <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
                         <div className="flex items-center space-x-2">
                           <label className="flex items-center space-x-2 cursor-pointer text-sm text-gray-600 dark:text-gray-300 hover:text-primary">
-                            <input type="file" className="hidden" multiple />
+                            <input 
+                              type="file" 
+                              className="hidden" 
+                              multiple 
+                              onChange={async (e) => {
+                                const files = Array.from(e.target.files);
+                                if (files.length > 0) {
+                                  try {
+                                    for (const file of files) {
+                                      await tasksAPI.uploadFile(task._id, file);
+                                    }
+                                    success(`${files.length} file(s) uploaded successfully!`);
+                                  } catch (err) {
+                                    error('Failed to upload files: ' + err.message);
+                                  }
+                                }
+                              }}
+                            />
                             <Paperclip className="w-4 h-4" />
                             <span>Attach files</span>
                           </label>
@@ -355,7 +372,7 @@ export default function EmployeeDashboard({ onNavigate }) {
                             onClick={() => {
                               const startDate = new Date();
                               const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
-                              const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(task.title)}&dates=${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent('Task reminder from B2B Task Manager')}`;
+                              const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(task.title)}&dates=${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent('Task reminder from TaskFlow')}`;
                               window.open(googleCalendarUrl, '_blank');
                             }}
                             className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-300 hover:text-primary"
@@ -364,9 +381,30 @@ export default function EmployeeDashboard({ onNavigate }) {
                             <span>Add to Calendar</span>
                           </button>
                         </div>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={async () => {
+                            if (task.status === 'completed') {
+                              // Show submitted files
+                              try {
+                                const filesResponse = await tasksAPI.getTaskFiles(task._id);
+                                if (filesResponse.success) {
+                                  const fileList = filesResponse.data.map(f => f.name).join(', ');
+                                  success(`Submitted files: ${fileList}`);
+                                } else {
+                                  error('No files submitted yet');
+                                }
+                              } catch (err) {
+                                error('Failed to load files');
+                              }
+                            } else {
+                              error('Complete the task first to submit files');
+                            }
+                          }}
+                        >
                           <Upload className="w-3 h-3 mr-1" />
-                          Submit
+                          {task.status === 'completed' ? 'View Files' : 'Submit'}
                         </Button>
                       </div>
                     </div>
