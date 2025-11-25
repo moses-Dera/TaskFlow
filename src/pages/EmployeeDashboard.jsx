@@ -121,16 +121,33 @@ export default function EmployeeDashboard({ onNavigate }) {
           });
           
           const laterTasks = allTasks.filter(task => {
-            if (!task.due_date) return true;
+            if (!task.due_date) return true; // Tasks without due date go to 'Later'
             const dueDate = new Date(task.due_date);
             return dueDate > nextWeek;
           });
           
-          setTasks({
-            today: todayTasks,
-            week: weekTasks,
-            later: laterTasks
+          console.log('Task categorization:', {
+            total: allTasks.length,
+            today: todayTasks.length,
+            week: weekTasks.length,
+            later: laterTasks.length
           });
+          
+          // If no tasks are categorized, put all tasks in 'later' tab
+          if (todayTasks.length === 0 && weekTasks.length === 0 && laterTasks.length === 0 && allTasks.length > 0) {
+            console.log('No tasks categorized, putting all in later tab');
+            setTasks({
+              today: [],
+              week: [],
+              later: allTasks
+            });
+          } else {
+            setTasks({
+              today: todayTasks,
+              week: weekTasks,
+              later: laterTasks
+            });
+          }
           
           // Set focus task (most urgent)
           const urgentTask = todayTasks.find(task => task.priority === 'high' && task.status !== 'completed') ||
