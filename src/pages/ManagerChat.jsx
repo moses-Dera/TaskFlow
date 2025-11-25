@@ -44,7 +44,7 @@ export default function ManagerChat() {
   useEffect(() => {
     const loadMessages = async () => {
       try {
-        const params = selectedUser ? { recipient_id: selectedUser._id } : {};
+        const params = selectedUser ? { recipient_id: selectedUser._id, type: 'direct' } : { type: 'group' };
         const messagesResponse = await chatAPI.getMessages(params);
 
         if (messagesResponse.success) {
@@ -70,6 +70,7 @@ export default function ManagerChat() {
     try {
       const messageData = {
         message: newMessage,
+        type: selectedUser ? 'direct' : 'group',
         ...(selectedUser && { recipient_id: selectedUser._id })
       };
 
@@ -214,11 +215,12 @@ export default function ManagerChat() {
               ) : (
                 messages.map((msg) => {
                   const isOwnMessage = currentUser && msg.sender_id._id === currentUser.id;
+                  const isGroupChat = !selectedUser;
                   return (
                     <div key={msg._id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${isOwnMessage
-                          ? 'bg-primary text-white'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+                          ? (isGroupChat ? 'bg-blue-600 text-white' : 'bg-indigo-600 text-white')
+                          : (isGroupChat ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'bg-emerald-100 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100')
                         }`}>
                         {!isOwnMessage && (
                           <p className="text-xs font-medium mb-1 opacity-75">{msg.sender_id.name}</p>
