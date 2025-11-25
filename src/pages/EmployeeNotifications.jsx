@@ -33,7 +33,13 @@ export default function EmployeeNotifications() {
       try {
         const response = await notificationsAPI.getNotifications();
         if (response.success) {
-          setNotifications(response.data || []);
+          // Transform backend data to ensure proper structure
+          const transformedNotifications = (response.data || []).map(notif => ({
+            ...notif,
+            _id: notif._id || notif.id,
+            time: notif.time || getRelativeTime(notif.createdAt)
+          }));
+          setNotifications(transformedNotifications);
         }
       } catch (error) {
         console.error('Failed to load notifications:', error);
@@ -44,6 +50,22 @@ export default function EmployeeNotifications() {
 
     loadNotifications();
   }, []);
+
+  // Helper function to get relative time
+  const getRelativeTime = (timestamp) => {
+    if (!timestamp) return 'Recently';
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diffMs = now - then;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  };
 
   // Socket.io real-time notification listener
   useEffect(() => {
