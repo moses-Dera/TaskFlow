@@ -3,7 +3,7 @@ import { Bell, Moon, Globe, Shield, Key, Eye, EyeOff } from 'lucide-react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import NotificationModal from '../components/ui/NotificationModal';
-import { settingsAPI } from '../utils/api';
+import { usersAPI } from '../utils/api';
 
 export default function Settings({ isDark, setIsDark, currentTheme }) {
   const [settings, setSettings] = useState({
