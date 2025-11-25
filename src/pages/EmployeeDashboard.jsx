@@ -103,6 +103,7 @@ export default function EmployeeDashboard({ onNavigate }) {
           
           // Categorize tasks
           const today = new Date();
+          today.setHours(0, 0, 0, 0);
           const tomorrow = new Date(today);
           tomorrow.setDate(tomorrow.getDate() + 1);
           const nextWeek = new Date(today);
@@ -111,43 +112,30 @@ export default function EmployeeDashboard({ onNavigate }) {
           const todayTasks = allTasks.filter(task => {
             if (!task.due_date) return false;
             const dueDate = new Date(task.due_date);
-            return dueDate.toDateString() === today.toDateString();
+            dueDate.setHours(0, 0, 0, 0);
+            return dueDate.getTime() === today.getTime();
           });
           
           const weekTasks = allTasks.filter(task => {
             if (!task.due_date) return false;
             const dueDate = new Date(task.due_date);
+            dueDate.setHours(0, 0, 0, 0);
             return dueDate > today && dueDate <= nextWeek;
           });
           
           const laterTasks = allTasks.filter(task => {
-            if (!task.due_date) return true; // Tasks without due date go to 'Later'
+            if (!task.due_date) return true;
             const dueDate = new Date(task.due_date);
+            dueDate.setHours(0, 0, 0, 0);
             return dueDate > nextWeek;
           });
           
-          console.log('Task categorization:', {
-            total: allTasks.length,
-            today: todayTasks.length,
-            week: weekTasks.length,
-            later: laterTasks.length
+          // Always show all tasks in 'later' if no proper categorization
+          setTasks({
+            today: todayTasks,
+            week: weekTasks,
+            later: allTasks.length > 0 && (todayTasks.length + weekTasks.length + laterTasks.length) === 0 ? allTasks : laterTasks
           });
-          
-          // If no tasks are categorized, put all tasks in 'later' tab
-          if (todayTasks.length === 0 && weekTasks.length === 0 && laterTasks.length === 0 && allTasks.length > 0) {
-            console.log('No tasks categorized, putting all in later tab');
-            setTasks({
-              today: [],
-              week: [],
-              later: allTasks
-            });
-          } else {
-            setTasks({
-              today: todayTasks,
-              week: weekTasks,
-              later: laterTasks
-            });
-          }
           
           // Set focus task (most urgent)
           const urgentTask = todayTasks.find(task => task.priority === 'high' && task.status !== 'completed') ||
@@ -304,7 +292,7 @@ export default function EmployeeDashboard({ onNavigate }) {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {tasks[activeTab] && tasks[activeTab].length > 0 ? tasks[activeTab].map((task) => (
+                {tasks[activeTab]?.length > 0 ? tasks[activeTab].map((task) => (
                   <div
                     key={task._id || task.id}
                     className={`p-4 rounded-lg border transition-colors ${getRowColor(task)}`}
