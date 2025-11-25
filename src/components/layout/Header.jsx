@@ -47,9 +47,16 @@ export default function Header({ userRole = 'employee', userName = 'John Doe', o
 
   const markAsRead = async (id) => {
     try {
-      await notificationsAPI.markAsRead(id);
+      console.log('Marking notification as read:', id);
+      const response = await notificationsAPI.markAsRead(id);
+      console.log('Mark as read response:', response);
+
+      // Update local state immediately
       setNotifications(prev => prev.map(n => (n._id || n.id) === id ? { ...n, read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
+
+      // Reload notifications to ensure accuracy
+      setTimeout(loadNotifications, 500);
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
     }
@@ -57,9 +64,13 @@ export default function Header({ userRole = 'employee', userName = 'John Doe', o
 
   const markAllAsRead = async () => {
     try {
+      console.log('Marking all notifications as read');
       await notificationsAPI.markAllAsRead();
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
+
+      // Reload to ensure accuracy
+      setTimeout(loadNotifications, 500);
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
     }
