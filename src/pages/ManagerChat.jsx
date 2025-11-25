@@ -632,7 +632,7 @@ export default function ManagerChat() {
 
                         {/* Emoji Picker */}
                         {showEmojiPicker === msg._id && (
-                          <div className="absolute bottom-full mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2 flex gap-1 z-10">
+                          <div className="absolute bottom-full mb-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl p-2 flex gap-1 z-50 border border-gray-200 dark:border-gray-600">
                             {EMOJI_OPTIONS.map(emoji => (
                               <button
                                 key={emoji}
@@ -647,7 +647,7 @@ export default function ManagerChat() {
 
                         {/* Message Menu */}
                         {showMessageMenu === msg._id && (
-                          <div className="absolute bottom-full mb-2 right-0 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-1 z-10 min-w-[150px]">
+                          <div className="absolute bottom-full mb-2 right-0 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-1 z-50 min-w-[150px] border border-gray-200 dark:border-gray-600">
                             {isOwnMessage && (
                               <button
                                 onClick={() => handleEditMessage(msg)}
