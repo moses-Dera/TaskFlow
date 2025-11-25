@@ -10,6 +10,24 @@ export default function EmployeeNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const markAsRead = async (notificationId) => {
+    if (!notificationId) {
+      console.error('Cannot mark notification as read: missing ID');
+      return;
+    }
+
+    try {
+      await notificationsAPI.markAsRead(notificationId);
+      setNotifications(prev =>
+        prev.map(notif =>
+          notif._id === notificationId ? { ...notif, read: true } : notif
+        )
+      );
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  };
+
   useEffect(() => {
     const loadNotifications = async () => {
       try {
@@ -36,13 +54,13 @@ export default function EmployeeNotifications() {
 
       // Add new notification to the top of the list
       const newNotif = {
-        id: data.id,
+        _id: data.id || data._id,
         title: data.title,
         message: data.message,
         type: data.type,
         read: false,
         time: 'Just now',
-        createdAt: data.timestamp
+        createdAt: data.timestamp || new Date().toISOString()
       };
 
       setNotifications(prev => [newNotif, ...prev]);
@@ -86,11 +104,13 @@ export default function EmployeeNotifications() {
             </div>
           ) : (
             <div className="space-y-4">
-              {notifications.map((notification) => (
+              {notifications.filter(n => n != null && n._id != null).map((notification) => (
                 <div
-                  key={notification.id}
+                  key={notification._id}
                   className={`flex items-start space-x-3 p-3 rounded-lg border ${notification.read ? 'bg-white border-gray-200' : 'bg-blue-50 border-blue-200'
                     }`}
+                  onClick={() => !notification.read && markAsRead(notification._id)}
+                  style={{ cursor: notification.read ? 'default' : 'pointer' }}
                 >
                   {getIcon(notification.type)}
                   <div className="flex-1">
