@@ -795,7 +795,7 @@ export default function ManagerChat() {
                     onKeyPress={handleKeyPress}
                     placeholder={`Message ${selectedUser ? selectedUser.name : 'the team'}...`}
                     rows={1}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none overflow-y-auto"
                     style={{ minHeight: '42px', maxHeight: '120px' }}
                     onInput={(e) => {
                       e.target.style.height = 'auto';

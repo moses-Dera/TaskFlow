@@ -754,14 +754,14 @@ export default function EmployeeChat() {
                     value={newMessage}
                     onChange={handleTyping}
                     onKeyPress={handleKeyPress}
-                    placeholder={`Message ${selectedUser ? selectedUser.name : 'everyone'}...`}
-                    rows={1}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
-                    style={{ minHeight: '42px', maxHeight: '120px' }}
                     onInput={(e) => {
                       e.target.style.height = 'auto';
                       e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
                     }}
+                    placeholder={`Message ${selectedUser ? selectedUser.name : 'everyone'}...`}
+                    rows={1}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none overflow-y-auto"
+                    style={{ minHeight: '42px', maxHeight: '120px' }}
                   />
                 </div>
                 <input
