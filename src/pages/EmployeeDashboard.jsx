@@ -1,4 +1,4 @@
-import { CheckCircle, Clock, MessageSquare, Calendar, Paperclip, Upload, CalendarPlus } from 'lucide-react';
+import { CheckCircle, Clock, MessageSquare, Calendar, Paperclip, Upload, CalendarPlus, X, Download, File, Image as ImageIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -17,6 +17,8 @@ export default function EmployeeDashboard({ onNavigate }) {
   const [weeklyData, setWeeklyData] = useState([]);
   const [updating, setUpdating] = useState(null);
   const [user, setUser] = useState(null);
+  const [viewingFiles, setViewingFiles] = useState(null);
+  const [taskFiles, setTaskFiles] = useState([]);
 
   const handleMarkComplete = async (taskId) => {
     setUpdating(taskId);
@@ -418,12 +420,12 @@ export default function EmployeeDashboard({ onNavigate }) {
                             variant={task.status === 'completed' ? 'outline' : 'default'}
                             onClick={async () => {
                               if (task.status === 'completed') {
-                                // Show submitted files
+                                // Load and show submitted files
                                 try {
                                   const filesResponse = await tasksAPI.getTaskFiles(task._id);
                                   if (filesResponse.success && filesResponse.data.length > 0) {
-                                    const fileList = filesResponse.data.map(f => f.name).join(', ');
-                                    success(`Submitted files: ${fileList}`);
+                                    setTaskFiles(filesResponse.data);
+                                    setViewingFiles(task);
                                   } else {
                                     error('No files submitted yet');
                                   }
@@ -543,6 +545,113 @@ export default function EmployeeDashboard({ onNavigate }) {
           )}
         </div>
       </div>
+
+      {/* File Viewer Modal */}
+      {viewingFiles && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Submitted Files - {viewingFiles.title}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  {taskFiles.length} file(s) submitted
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setViewingFiles(null);
+                  setTaskFiles([]);
+                }}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {taskFiles.map((file, idx) => {
+                  const isImage = file.mimeType?.startsWith('image/') ||
+                    /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
+                  const fileUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/uploads/tasks/${file.filename}`;
+
+                  return (
+                    <div
+                      key={idx}
+                      className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+                    >
+                      {isImage ? (
+                        <div className="relative group">
+                          <img
+                            src={fileUrl}
+                            alt={file.name}
+                            className="w-full h-48 object-cover cursor-pointer"
+                            onClick={() => window.open(fileUrl, '_blank')}
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                            <a
+                              href={fileUrl}
+                              download={file.name}
+                              className="opacity-0 group-hover:opacity-100 bg-white dark:bg-gray-800 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+                              title="Download"
+                            >
+                              <Download className="w-5 h-5 text-gray-900 dark:text-white" />
+                            </a>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="h-48 bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+                          <File className="w-16 h-16 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="p-3 bg-white dark:bg-gray-800">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate" title={file.name}>
+                          {file.name}
+                        </p>
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {file.size ? `${(file.size / 1024).toFixed(1)} KB` : 'Unknown size'}
+                          </p>
+                          <a
+                            href={fileUrl}
+                            download={file.name}
+                            className="text-xs text-primary hover:text-primary-dark flex items-center gap-1"
+                          >
+                            <Download className="w-3 h-3" />
+                            Download
+                          </a>
+                        </div>
+                        {file.uploaded_by && (
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                            By: {file.uploaded_by.name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setViewingFiles(null);
+                  setTaskFiles([]);
+                }}
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
