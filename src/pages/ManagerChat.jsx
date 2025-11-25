@@ -580,7 +580,7 @@ export default function ManagerChat() {
 
                   return (
                     <div key={msg._id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} group relative z-10`}>
-                      <div className="max-w-xs lg:max-w-md w-full relative">
+                      <div className={`relative max-w-[85%] md:max-w-[75%] ${isOwnMessage ? 'items-end' : 'items-start'}`}>
                         {/* Reply indicator */}
                         {msg.replyTo && (
                           <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 italic truncate">
@@ -595,7 +595,7 @@ export default function ManagerChat() {
                           {!isOwnMessage && (
                             <p className="text-xs font-medium mb-1 opacity-75">{msg.sender_id.name}</p>
                           )}
-                          <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">{msg.message}</p>
+                          <p className="text-sm whitespace-pre-wrap break-all">{msg.message}</p>
 
                           {/* File Attachments */}
                           {msg.attachments && msg.attachments.length > 0 && (
@@ -795,12 +795,7 @@ export default function ManagerChat() {
                     onKeyPress={handleKeyPress}
                     placeholder={`Message ${selectedUser ? selectedUser.name : 'the team'}...`}
                     rows={1}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none overflow-y-auto"
-                    style={{ minHeight: '42px', maxHeight: '120px' }}
-                    onInput={(e) => {
-                      e.target.style.height = 'auto';
-                      e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
-                    }}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none overflow-y-auto min-h-[42px] max-h-[120px]"
                   />
                 </div>
                 <input
