@@ -565,7 +565,7 @@ export default function ManagerChat() {
             )}
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-scroll p-4 space-y-4 min-h-60vh">
+            <div className="flex-1 overflow-y-scroll p-4 space-y-4 min-h-fit">
               {messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
                   <div className="text-center">
