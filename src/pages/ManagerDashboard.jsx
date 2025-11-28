@@ -257,21 +257,35 @@ export default function ManagerDashboard({ onNavigate }) {
             <CardTitle>Task Status Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            <DonutChart data={taskStatusData} />
-            <div className="flex justify-center space-x-6 mt-4">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                <span className="text-sm text-gray-600 dark:text-gray-300">Completed</span>
+            {performance?.total_tasks > 0 ? (
+              <>
+                <DonutChart data={taskStatusData} />
+                <div className="flex justify-center space-x-6 mt-4">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Completed</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">In Progress</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-amber-500 rounded-full mr-2"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Overdue</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="h-64 flex flex-col items-center justify-center text-center p-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <TrendingUp className="w-8 h-8 text-gray-400" />
+                </div>
+                <p className="text-gray-900 font-medium">No tasks yet</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Create tasks to see status distribution
+                </p>
               </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                <span className="text-sm text-gray-600 dark:text-gray-300">In Progress</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-amber-500 rounded-full mr-2"></div>
-                <span className="text-sm text-gray-600 dark:text-gray-300">Overdue</span>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -281,8 +295,22 @@ export default function ManagerDashboard({ onNavigate }) {
             <CardTitle>Productivity Trend</CardTitle>
           </CardHeader>
           <CardContent>
-            <SimpleLineChart data={productivityData} />
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center">Tasks completed weekly (last 30 days)</p>
+            {performance?.total_tasks > 0 ? (
+              <>
+                <SimpleLineChart data={productivityData} />
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center">Tasks completed weekly (last 30 days)</p>
+              </>
+            ) : (
+              <div className="h-64 flex flex-col items-center justify-center text-center p-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <TrendingUp className="w-8 h-8 text-gray-400" />
+                </div>
+                <p className="text-gray-900 font-medium">No activity yet</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Completed tasks will appear here
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -305,7 +333,7 @@ export default function ManagerDashboard({ onNavigate }) {
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {employee.tasks_completed}/{employee.tasks_assigned} tasks completed
                     </p>
-                    <button 
+                    <button
                       onClick={async () => {
                         try {
                           const tasksResponse = await tasksAPI.getTasks({ assigned_to: employee.id });
@@ -355,7 +383,7 @@ export default function ManagerDashboard({ onNavigate }) {
                 </div>
               </div>
             ))
-          }
+            }
           </div>
         </CardContent>
       </Card>

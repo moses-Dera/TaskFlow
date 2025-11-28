@@ -98,8 +98,22 @@ export default function TeamPerformance() {
             <CardTitle>Team Performance Trend</CardTitle>
           </CardHeader>
           <CardContent>
-            <SimpleLineChart data={performanceData} />
-            <p className="text-sm text-gray-500 mt-2 text-center">Tasks completed per week</p>
+            {performance?.total_tasks > 0 ? (
+              <>
+                <SimpleLineChart data={performanceData} />
+                <p className="text-sm text-gray-500 mt-2 text-center">Tasks completed per week</p>
+              </>
+            ) : (
+              <div className="h-64 flex flex-col items-center justify-center text-center p-4">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <TrendingUp className="w-8 h-8 text-gray-400" />
+                </div>
+                <p className="text-gray-900 font-medium">No performance data yet</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Assign and complete tasks to see performance trends
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -125,11 +139,10 @@ export default function TeamPerformance() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      employee.performance_score === 'A' ? 'bg-green-100 text-green-800' :
-                      employee.performance_score === 'B' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${employee.performance_score === 'A' ? 'bg-green-100 text-green-800' :
+                        employee.performance_score === 'B' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                      }`}>
                       {employee.performance_score}
                     </span>
                   </div>
