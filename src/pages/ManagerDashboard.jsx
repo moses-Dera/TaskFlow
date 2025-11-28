@@ -333,6 +333,10 @@ export default function ManagerDashboard({ onNavigate }) {
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {employee.tasks_completed}/{employee.tasks_assigned} tasks completed
                     </p>
+                    <div className="text-xs text-gray-500 mt-1 space-y-0.5">
+                      <p>📞 {employee.phone}</p>
+                      <p>🏢 {employee.department}</p>
+                    </div>
                     <button
                       onClick={async () => {
                         try {
@@ -340,7 +344,12 @@ export default function ManagerDashboard({ onNavigate }) {
                           if (tasksResponse.success) {
                             const completedTasks = tasksResponse.data.filter(t => t.status === 'completed');
                             if (completedTasks.length > 0) {
-                              const taskList = completedTasks.map(t => `• ${t.title}`).join('\n');
+                              const taskList = completedTasks.map(t => {
+                                const submissionInfo = t.submission_url
+                                  ? `\n  📎 Submission: ${t.submission_url} (${new Date(t.submission_date).toLocaleDateString()})`
+                                  : '';
+                                return `• ${t.title}${submissionInfo}`;
+                              }).join('\n');
                               success(`Completed tasks by ${employee.name}:\n${taskList}`);
                             } else {
                               error(`No completed tasks by ${employee.name}`);
@@ -460,12 +469,14 @@ export default function ManagerDashboard({ onNavigate }) {
         </CardContent>
       </Card>
 
-      {showMeetingScheduler && (
-        <MeetingScheduler
-          employees={employees}
-          onClose={() => setShowMeetingScheduler(false)}
-        />
-      )}
-    </div>
+      {
+        showMeetingScheduler && (
+          <MeetingScheduler
+            employees={employees}
+            onClose={() => setShowMeetingScheduler(false)}
+          />
+        )
+      }
+    </div >
   );
 }
