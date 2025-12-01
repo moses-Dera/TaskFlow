@@ -785,6 +785,24 @@ export default function ManagerChat() {
               </div>
             )}
 
+            {/* Selected Files Indicator */}
+            {selectedFiles.length > 0 && (
+              <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-2">
+                {selectedFiles.map((file, idx) => (
+                  <div key={idx} className="flex items-center bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 shadow-sm">
+                    <Paperclip className="w-3 h-3 text-gray-400 mr-2" />
+                    <span className="text-sm text-gray-700 dark:text-gray-300 max-w-[150px] truncate">{file.name}</span>
+                    <button
+                      onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== idx))}
+                      className="ml-2 text-gray-400 hover:text-red-500"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Message Input */}
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
               <div className="flex items-end gap-2">
@@ -806,8 +824,7 @@ export default function ManagerChat() {
                   onChange={(e) => {
                     const files = Array.from(e.target.files);
                     if (files.length > 0) {
-                      setSelectedFiles(files);
-                      success(`${files.length} file(s) selected`);
+                      setSelectedFiles(prev => [...prev, ...files]);
                     }
                   }}
                 />
@@ -816,13 +833,13 @@ export default function ManagerChat() {
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                   title="Attach file"
-                  className="flex-shrink-0"
+                  className={`flex-shrink-0 ${selectedFiles.length > 0 ? 'text-primary border-primary bg-primary/10' : ''}`}
                 >
                   <Paperclip className="w-4 h-4" />
                 </Button>
                 <Button
                   onClick={sendMessage}
-                  disabled={!newMessage.trim()}
+                  disabled={!newMessage.trim() && selectedFiles.length === 0}
                   className="flex-shrink-0"
                 >
                   <Send className="w-4 h-4" />
