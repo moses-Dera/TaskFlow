@@ -160,8 +160,8 @@ export default function TaskDetailModal({ task, onClose, onMarkComplete, isManag
                                             <div key={idx} className="flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                                 <File className="w-8 h-8 text-blue-500 mr-3" />
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate" title={file.name}>{file.name}</p>
-                                                    <p className="text-xs text-gray-500">{file.size ? (file.size / 1024).toFixed(1) + ' KB' : 'Unknown size'}</p>
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate" title={file.filename}>{file.filename}</p>
+                                                    <p className="text-xs text-gray-500">{file.file_size ? (file.file_size / 1024).toFixed(1) + ' KB' : 'Unknown size'}</p>
                                                 </div>
                                                 <a
                                                     href={fileUrl}
