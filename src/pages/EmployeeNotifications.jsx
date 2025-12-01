@@ -119,8 +119,8 @@ export default function EmployeeNotifications({ onNavigate }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Notifications</h1>
-        <p className="text-gray-600 mt-1">Stay updated with your tasks and messages</p>
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Notifications</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">Stay updated with your tasks and messages</p>
       </div>
 
       <Card>
@@ -132,7 +132,7 @@ export default function EmployeeNotifications({ onNavigate }) {
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
                 <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading notifications...</p>
+                <p className="text-gray-600 dark:text-gray-400">Loading notifications...</p>
               </div>
             </div>
           ) : (
@@ -140,7 +140,9 @@ export default function EmployeeNotifications({ onNavigate }) {
               {notifications.filter(n => n != null && n._id != null).map((notification) => (
                 <div
                   key={notification._id}
-                  className={`flex items-start space-x-3 p-3 rounded-lg border ${notification.read ? 'bg-white border-gray-200' : 'bg-blue-50 border-blue-200'
+                  className={`flex items-start space-x-3 p-3 rounded-lg border ${notification.read
+                    ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                    : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
                     }`}
                   onClick={() => handleNotificationClick(notification)}
                   style={{ cursor: 'pointer' }}
@@ -148,11 +150,11 @@ export default function EmployeeNotifications({ onNavigate }) {
                   {getIcon(notification.type)}
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <p className="font-medium text-gray-900">{notification.title}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{notification.title}</p>
                       {!notification.read && <Badge variant="primary">New</Badge>}
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
-                    <p className="text-xs text-gray-500 mt-2">{notification.time}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{notification.message}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{notification.time}</p>
                   </div>
                 </div>
               ))}

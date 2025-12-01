@@ -64,6 +64,7 @@ function App() {
         if (currentPath === '/manager/chat') return <ManagerChat />;
         if (currentPath === '/manager/performance') return <TeamPerformance />;
         if (currentPath === '/manager/tasks') return <AssignTasks />;
+        if (currentPath === '/manager/notifications') return <EmployeeNotifications onNavigate={handleNavigation} />;
         if (currentPath === '/user-management' || currentPath === '/manager/users') return <UserManagement />;
         return <ManagerDashboard onNavigate={handleNavigation} />;
       case 'employee':
