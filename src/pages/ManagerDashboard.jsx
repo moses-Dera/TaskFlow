@@ -8,6 +8,7 @@ import SimpleLineChart from '../components/charts/LineChart';
 import MeetingScheduler from '../components/ui/MeetingScheduler';
 import { teamAPI, tasksAPI, authAPI } from '../utils/api';
 import { useNotification } from '../hooks/useNotification';
+import TaskDetailModal from '../components/TaskDetailModal';
 
 export default function ManagerDashboard({ onNavigate }) {
   const { success, error } = useNotification();
@@ -26,6 +27,7 @@ export default function ManagerDashboard({ onNavigate }) {
     priority: 'medium'
   });
   const [submitting, setSubmitting] = useState(false);
+  const [viewingTask, setViewingTask] = useState(null);
 
   useEffect(() => {
     const loadTeamData = async () => {
@@ -344,13 +346,16 @@ export default function ManagerDashboard({ onNavigate }) {
                           if (tasksResponse.success) {
                             const completedTasks = tasksResponse.data.filter(t => t.status === 'completed');
                             if (completedTasks.length > 0) {
-                              const taskList = completedTasks.map(t => {
-                                const submissionInfo = t.submission_url
-                                  ? `\n  📎 Submission: ${t.submission_url} (${new Date(t.submission_date).toLocaleDateString()})`
-                                  : '';
-                                return `• ${t.title}${submissionInfo}`;
-                              }).join('\n');
-                              success(`Completed tasks by ${employee.name}:\n${taskList}`);
+                              // If multiple tasks, for now just show the most recent one or a list selector
+                              // Ideally we'd show a list modal, but for "View Submitted Tasks" let's show the latest one
+                              // or maybe we should show a list? 
+                              // The user request implies "view submitted task" (singular/plural ambiguous).
+                              // Let's pick the latest completed task for now to show the detail modal.
+                              // A better UX would be a list of completed tasks to pick from.
+
+                              // For now, let's open the most recent completed task
+                              const latestTask = completedTasks.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))[0];
+                              setViewingTask(latestTask);
                             } else {
                               error(`No completed tasks by ${employee.name}`);
                             }
@@ -361,7 +366,7 @@ export default function ManagerDashboard({ onNavigate }) {
                       }}
                       className="text-xs text-blue-600 hover:text-blue-800 mt-1"
                     >
-                      View Submitted Tasks
+                      View Latest Submission
                     </button>
                   </div>
                 </div>
@@ -477,6 +482,14 @@ export default function ManagerDashboard({ onNavigate }) {
           />
         )
       }
+
+      {viewingTask && (
+        <TaskDetailModal
+          task={viewingTask}
+          onClose={() => setViewingTask(null)}
+          isManagerView={true}
+        />
+      )}
     </div >
   );
 }
