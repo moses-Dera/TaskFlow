@@ -205,6 +205,17 @@ export const usersAPI = {
       body: JSON.stringify(profileData),
     }),
 
+  uploadProfilePicture: (file) => {
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+
+    return apiRequest('/users/profile/picture', {
+      method: 'POST',
+      headers: {}, // Let browser set Content-Type
+      body: formData,
+    });
+  },
+
   getSettings: () => apiRequest('/users/settings'),
 
   updateSettings: (settingsData) =>

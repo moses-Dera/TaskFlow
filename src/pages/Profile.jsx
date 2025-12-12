@@ -85,12 +85,18 @@ export default function Profile({ user: initialUser }) {
 
     setUploading(true);
     try {
-      setTimeout(() => {
+      const response = await usersAPI.uploadProfilePicture(file);
+      if (response.success) {
+        setUser(response.data);
         success('Photo uploaded successfully!');
-        setUploading(false);
-      }, 1000);
+        // Force reload user data to update header etc
+        window.location.reload();
+      } else {
+        error('Failed to upload photo: ' + (response.error || 'Unknown error'));
+      }
     } catch (err) {
       error('Failed to upload photo: ' + err.message);
+    } finally {
       setUploading(false);
     }
   };
@@ -106,10 +112,18 @@ export default function Profile({ user: initialUser }) {
         <Card>
           <CardContent className="p-6 text-center">
             <div className="relative w-24 h-24 mx-auto mb-4">
-              <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-white text-2xl font-bold">
-                  {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
-                </span>
+              <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center overflow-hidden">
+                {user?.profilePicture ? (
+                  <img
+                    src={`${import.meta.env.VITE_API_URL || 'https://task-manger-backend-z2yz.onrender.com/api'}${user.profilePicture}`}
+                    alt={user.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white text-2xl font-bold">
+                    {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                  </span>
+                )}
               </div>
               {uploading && (
                 <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
@@ -129,8 +143,8 @@ export default function Profile({ user: initialUser }) {
               onChange={handlePhotoUpload}
               className="hidden"
             />
-            <Button 
-              className="mt-4" 
+            <Button
+              className="mt-4"
               size="sm"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
@@ -187,7 +201,7 @@ export default function Profile({ user: initialUser }) {
                   />
                 </div>
               </div>
-              <Button 
+              <Button
                 onClick={handleSaveChanges}
                 disabled={loading}
               >
