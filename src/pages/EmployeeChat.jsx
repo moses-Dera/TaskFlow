@@ -577,7 +577,9 @@ export default function EmployeeChat() {
                             <div className="mt-2 space-y-2">
                               {msg.attachments.map((file, idx) => {
                                 const isImage = file.mimeType?.startsWith('image/');
-                                const fileUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${file.url}`;
+                                const fileUrl = file.url.startsWith('http')
+                                  ? file.url
+                                  : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${file.url}`;
 
                                 return (
                                   <div key={idx} className="bg-white/10 dark:bg-black/10 rounded-lg p-2">
