@@ -187,13 +187,49 @@ export const tasksAPI = {
       body: JSON.stringify(updates),
     }),
 
-  uploadFile: (taskId, file) => {
-    const formData = new FormData();
-    formData.append('file', file);
+  uploadFile: (taskId, file, onProgress) => {
+    return new Promise((resolve, reject) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const token = getAuthToken();
 
-    return apiRequest(`/tasks/${taskId}/files`, {
-      method: 'POST',
-      body: formData,
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${API_BASE_URL}/tasks/${taskId}/files`);
+
+      if (token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      }
+
+      if (onProgress) {
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            onProgress(percentComplete);
+          }
+        };
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response);
+          } catch (e) {
+            reject(new Error('Invalid JSON response'));
+          }
+        } else {
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            reject(new Error(errorData.error || errorData.message || 'Upload failed'));
+          } catch (e) {
+            reject(new Error(xhr.statusText || 'Upload failed'));
+          }
+        }
+      };
+
+      xhr.onerror = () => reject(new Error('Network error'));
+
+      xhr.send(formData);
     });
   },
 

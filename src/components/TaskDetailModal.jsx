@@ -9,6 +9,7 @@ export default function TaskDetailModal({ task, onClose, onMarkComplete, isManag
     const [taskFiles, setTaskFiles] = useState([]);
     const [loadingFiles, setLoadingFiles] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [error, setError] = useState(null);
     const [successMsg, setSuccessMsg] = useState(null);
 
@@ -192,13 +193,25 @@ export default function TaskDetailModal({ task, onClose, onMarkComplete, isManag
                                             disabled={uploading}
                                         />
                                         {uploading ? (
-                                            <div className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+                                                <span className="text-xs text-gray-500">{uploadProgress}%</span>
+                                            </div>
                                         ) : (
                                             <Paperclip className="w-4 h-4 text-gray-500" />
                                         )}
                                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                             {uploading ? 'Uploading...' : 'Upload Files'}
                                         </span>
+                                    </label>
+                                    {uploading && (
+                                        <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+                                            <div 
+                                                className="bg-primary h-1.5 rounded-full transition-all duration-300" 
+                                                style={{ width: `${uploadProgress}%` }}
+                                            ></div>
+                                        </div>
+                                    )}
                                     </label>
                                 </div>
                             )}
