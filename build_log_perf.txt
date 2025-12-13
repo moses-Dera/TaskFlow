@@ -1,0 +1,136 @@
+﻿
+> taskflow@1.0.0 build
+> vite build
+
+[36mvite v4.5.14 [32mbuilding for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 3 modules transformed.
+[32mΓ£ô built in 2.40s[39m
+node.exe : 
+[31m[vite]: Rollup 
+failed to resolve 
+import 
+"@vercel/analytics" 
+from "C:/Users/HomePC
+/Desktop/Task-Manger/
+B2B-Task-Manager/src/
+main.jsx".
+At line:1 char:1
++ & "C:\Program Files
+\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: ([31m[v   
+ ite]: Ro.../src/    
+main.jsx".:Strin    
+g) [], RemoteExc    
+eption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+This is most likely 
+unintended because 
+it can break your 
+application at 
+runtime.
+If you do want to 
+externalize this 
+module explicitly 
+add it to
+`build.rollupOptions.
+external`[39m
+[31merror during 
+build:
+Error: [vite]: 
+Rollup failed to 
+resolve import 
+"@vercel/analytics" 
+from "C:/Users/HomePC
+/Desktop/Task-Manger/
+B2B-Task-Manager/src/
+main.jsx".
+This is most likely 
+unintended because 
+it can break your 
+application at 
+runtime.
+If you do want to 
+externalize this 
+module explicitly 
+add it to
+`build.rollupOptions.
+external`
+    at viteWarn (file
+:///C:/Users/HomePC/D
+esktop/Task-Manger/B2
+B-Task-Manager/node_m
+odules/vite/dist/node
+/chunks/dep-827b23df.
+js:48272:27)
+    at onwarn (file:/
+//C:/Users/HomePC/Des
+ktop/Task-Manger/B2B-
+Task-Manager/node_mod
+ules/@vitejs/plugin-r
+eact/dist/index.js:90
+:7)
+    at 
+onRollupWarning (file
+:///C:/Users/HomePC/D
+esktop/Task-Manger/B2
+B-Task-Manager/node_m
+odules/vite/dist/node
+/chunks/dep-827b23df.
+js:48301:9)
+    at onwarn (file:/
+//C:/Users/HomePC/Des
+ktop/Task-Manger/B2B-
+Task-Manager/node_mod
+ules/vite/dist/node/c
+hunks/dep-827b23df.js
+:48032:13)
+    at file:///C:/Use
+rs/HomePC/Desktop/Tas
+k-Manger/B2B-Task-Man
+ager/node_modules/vit
+e/node_modules/rollup
+/dist/es/shared/node-
+entry.js:24276:13
+    at Object.logger 
+[as onLog] (file:///C
+:/Users/HomePC/Deskto
+p/Task-Manger/B2B-Tas
+k-Manager/node_module
+s/vite/node_modules/r
+ollup/dist/es/shared/
+node-entry.js:25950:9
+)
+    at ModuleLoader.h
+andleInvalidResolvedI
+d (file:///C:/Users/H
+omePC/Desktop/Task-Ma
+nger/B2B-Task-Manager
+/node_modules/vite/no
+de_modules/rollup/dis
+t/es/shared/node-entr
+y.js:24862:26)
+    at file:///C:/Use
+rs/HomePC/Desktop/Tas
+k-Manger/B2B-Task-Man
+ager/node_modules/vit
+e/node_modules/rollup
+/dist/es/shared/node-
+entry.js:24822:26
+    at process.proces
+sTicksAndRejections (
+node:internal/process
+/task_queues:105:5)[
+39m

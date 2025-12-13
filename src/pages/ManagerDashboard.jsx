@@ -105,15 +105,18 @@ export default function ManagerDashboard({ onNavigate }) {
 
           setTaskStatusData(taskData);
 
-          // Generate productivity trend data
-          const completedTasks = perf.completed_tasks || 0;
-          const productivityWeeks = [
-            { name: 'Week 1', value: Math.max(1, Math.floor(completedTasks * 0.2)) },
-            { name: 'Week 2', value: Math.max(1, Math.floor(completedTasks * 0.3)) },
-            { name: 'Week 3', value: Math.max(2, Math.floor(completedTasks * 0.25)) },
-            { name: 'Week 4', value: Math.max(2, Math.floor(completedTasks * 0.25)) },
-          ];
-          setProductivityData(productivityWeeks);
+          // Use real productivity trend data from API
+          if (perf.weekly_performance && Array.isArray(perf.weekly_performance)) {
+            setProductivityData(perf.weekly_performance);
+          } else {
+            // Fallback if no data
+            setProductivityData([
+              { name: 'Week 1', value: 0 },
+              { name: 'Week 2', value: 0 },
+              { name: 'Week 3', value: 0 },
+              { name: 'Week 4', value: 0 },
+            ]);
+          }
         }
       } catch (error) {
         console.error('Failed to load team data:', error);
