@@ -269,13 +269,6 @@ export default function EmployeeChat() {
         const response = await chatAPI.sendMessage(messageData);
         if (response.success) {
           setMessages(prev => [...prev, response.data]);
-
-          if (socket) {
-            socket.emit('send_message', {
-              recipientId: selectedUser?._id,
-              message: newMessage || '📎 Attachment'
-            });
-          }
         }
         setNewMessage('');
         setSelectedFiles([]);

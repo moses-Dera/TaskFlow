@@ -17,7 +17,7 @@ export const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
     const [isConnected, setIsConnected] = useState(false);
     const [onlineUsers, setOnlineUsers] = useState([]);
-    const { showNotification } = useNotification();
+    const notification = useNotification();
 
     useEffect(() => {
         const token = getAuthToken();
@@ -80,11 +80,13 @@ export const SocketProvider = ({ children }) => {
         // Global Notification Listener
         newSocket.on('notification', (data) => {
             console.log('🔔 Received notification:', data);
-            // Play a subtle sound if desired (optional)
-            // const audio = new Audio('/notification.mp3');
-            // audio.play().catch(e => console.log('Audio play failed', e));
 
-            showNotification(data.message, data.type || 'info', 5000);
+            const type = data.type || 'info';
+            if (notification[type]) {
+                notification[type](data.message);
+            } else {
+                notification.info(data.message);
+            }
         });
 
         setSocket(newSocket);
@@ -94,7 +96,7 @@ export const SocketProvider = ({ children }) => {
             console.log('🔌 Disconnecting socket');
             newSocket.close();
         };
-    }, [showNotification]);
+    }, []); // Removed notification dependency to prevent reconnection loops
 
     const value = {
         socket,
