@@ -579,7 +579,7 @@ export default function EmployeeChat() {
                                 const isImage = file.mimeType?.startsWith('image/');
                                 const fileUrl = file.url.startsWith('http')
                                   ? file.url
-                                  : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${file.url}`;
+                                  : `${import.meta.env.VITE_API_URL || 'https://task-manger-backend-z2yz.onrender.com/api'}${file.url}`;
 
                                 return (
                                   <div key={idx} className="bg-white/10 dark:bg-black/10 rounded-lg p-2">
@@ -593,7 +593,8 @@ export default function EmployeeChat() {
                                         />
                                         <a
                                           href={fileUrl}
-                                          download={file.originalName}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
                                           className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity"
                                           title="Download"
                                         >
@@ -603,7 +604,8 @@ export default function EmployeeChat() {
                                     ) : (
                                       <a
                                         href={fileUrl}
-                                        download={file.originalName}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="flex items-center gap-2 hover:bg-white/10 dark:hover:bg-black/10 p-1 rounded transition-colors"
                                       >
                                         <File className="w-5 h-5 flex-shrink-0" />

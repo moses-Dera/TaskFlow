@@ -67,7 +67,7 @@ const apiRequest = async (endpoint, options = {}, retries = 1) => {
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
     // Validate base URL is from allowed domain
-    const allowedDomains = ['task-manger-backend-z2yz.onrender.com', 'localhost'];
+    const allowedDomains = ['task-manger-backend-z2yz.onrender.com'];
     const baseUrlObj = new URL(baseUrl);
     if (!allowedDomains.includes(baseUrlObj.hostname)) {
       throw new Error('Invalid API domain');

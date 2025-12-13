@@ -590,7 +590,7 @@ export default function EmployeeDashboard({ onNavigate }) {
                     /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
                   const fileUrl = file.url && file.url.startsWith('http')
                     ? file.url
-                    : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/uploads/tasks/${file.filename}`;
+                    : `${import.meta.env.VITE_API_URL || 'https://task-manger-backend-z2yz.onrender.com/api'}/uploads/tasks/${file.filename}`;
 
                   return (
                     <div
@@ -608,7 +608,8 @@ export default function EmployeeDashboard({ onNavigate }) {
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                             <a
                               href={fileUrl}
-                              download={file.name}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="opacity-0 group-hover:opacity-100 bg-white dark:bg-gray-800 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
                               title="Download"
                             >
@@ -631,7 +632,8 @@ export default function EmployeeDashboard({ onNavigate }) {
                           </p>
                           <a
                             href={fileUrl}
-                            download={file.name}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="text-xs text-primary hover:text-primary-dark flex items-center gap-1"
                           >
                             <Download className="w-3 h-3" />
