@@ -106,8 +106,10 @@ export default function EmployeeDashboard({ onNavigate }) {
           // Categorize tasks
           const today = new Date();
           today.setHours(0, 0, 0, 0);
+
           const tomorrow = new Date(today);
           tomorrow.setDate(tomorrow.getDate() + 1);
+
           const nextWeek = new Date(today);
           nextWeek.setDate(nextWeek.getDate() + 7);
 
@@ -122,21 +124,20 @@ export default function EmployeeDashboard({ onNavigate }) {
             if (!task.due_date) return false;
             const dueDate = new Date(task.due_date);
             dueDate.setHours(0, 0, 0, 0);
-            return dueDate > today && dueDate <= nextWeek;
+            return dueDate >= tomorrow && dueDate <= nextWeek;
           });
 
           const laterTasks = allTasks.filter(task => {
-            if (!task.due_date) return true;
+            if (!task.due_date) return true; // Tasks without due date go to Later
             const dueDate = new Date(task.due_date);
             dueDate.setHours(0, 0, 0, 0);
             return dueDate > nextWeek;
           });
 
-          // Always show all tasks in 'later' if no proper categorization
           setTasks({
             today: todayTasks,
             week: weekTasks,
-            later: allTasks.length > 0 && (todayTasks.length + weekTasks.length + laterTasks.length) === 0 ? allTasks : laterTasks
+            later: laterTasks
           });
 
           // Set focus task (most urgent)
