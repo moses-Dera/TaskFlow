@@ -400,6 +400,9 @@ export default function ManagerDashboard({ onNavigate }) {
       </div>
 
       {/* Employee Leaderboard */}
+      <div style={{ padding: '20px', backgroundColor: '#fee2e2', border: '2px solid #ef4444', color: '#b91c1c', fontWeight: 'bold', textAlign: 'center', margin: '20px 0' }}>
+        DEBUG MODE: IF YOU SEE THIS, THE DASHBOARD MODULE IS UPDATING.
+      </div>
       <Leaderboard
         employees={employees}
         onEmployeeClick={(employee) => {
