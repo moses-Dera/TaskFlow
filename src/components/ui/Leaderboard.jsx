@@ -5,7 +5,6 @@ import Avatar from './Avatar';
 import Badge from './Badge';
 
 export default function Leaderboard({ employees, onEmployeeClick }) {
-    console.log('Leaderboard component rendering. Employees:', employees);
     const [filter, setFilter] = useState('score'); // 'score' or 'streak'
 
     // Sort employees based on filter
