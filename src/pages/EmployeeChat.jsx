@@ -124,7 +124,12 @@ export default function EmployeeChat() {
         );
 
       if (isRelevant) {
-        setMessages(prev => [...prev, data.message]);
+        setMessages(prev => {
+          // Prevent duplicate messages
+          const exists = prev.some(msg => msg._id === data.message._id);
+          if (exists) return prev;
+          return [...prev, data.message];
+        });
 
         // Mark as read if conversation is open and not own message
         if (data.message.sender_id._id !== currentUser.id) {
@@ -259,17 +264,31 @@ export default function EmployeeChat() {
           }
         }
 
-        const messageData = {
-          message: newMessage || '📎 Attachment',
-          ...(selectedUser && { recipient_id: selectedUser._id }),
-          ...(replyingTo && { replyTo: replyingTo._id }),
-          ...(attachments.length > 0 && { attachments })
-        };
+        // Use Socket.io for real-time messaging if connected, fallback to HTTP API
+        if (socket && isConnected) {
+          const messageData = {
+            message: newMessage || '📎 Attachment',
+            ...(selectedUser && { recipient_id: selectedUser._id }),
+            ...(replyingTo && { replyTo: replyingTo._id }),
+            ...(attachments.length > 0 && { attachments })
+          };
 
-        const response = await chatAPI.sendMessage(messageData);
-        if (response.success) {
-          setMessages(prev => [...prev, response.data]);
+          socket.emit('send_message', messageData);
+        } else {
+          // Fallback to HTTP API if Socket.io not available
+          const messageData = {
+            message: newMessage || '📎 Attachment',
+            ...(selectedUser && { recipient_id: selectedUser._id }),
+            ...(replyingTo && { replyTo: replyingTo._id }),
+            ...(attachments.length > 0 && { attachments })
+          };
+
+          const response = await chatAPI.sendMessage(messageData);
+          if (response.success) {
+            setMessages(prev => [...prev, response.data]);
+          }
         }
+
         setNewMessage('');
         setSelectedFiles([]);
         setReplyingTo(null);
