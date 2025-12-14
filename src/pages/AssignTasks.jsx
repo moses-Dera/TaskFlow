@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, User, Calendar, AlertCircle, CheckCircle } from 'lucide-react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
+import Avatar from '../components/ui/Avatar';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { teamAPI, tasksAPI } from '../utils/api';
@@ -128,8 +129,8 @@ export default function AssignTasks() {
             <form onSubmit={handleTaskSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Task Title</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={taskForm.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -140,7 +141,7 @@ export default function AssignTasks() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Assign To</label>
-                <select 
+                <select
                   value={taskForm.assigned_to}
                   onChange={(e) => handleInputChange('assigned_to', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -155,7 +156,7 @@ export default function AssignTasks() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priority</label>
-                <select 
+                <select
                   value={taskForm.priority}
                   onChange={(e) => handleInputChange('priority', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -168,8 +169,8 @@ export default function AssignTasks() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Due Date</label>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   value={taskForm.due_date}
                   onChange={(e) => handleInputChange('due_date', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -178,7 +179,7 @@ export default function AssignTasks() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
-                <textarea 
+                <textarea
                   rows={4}
                   value={taskForm.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
@@ -205,11 +206,12 @@ export default function AssignTasks() {
               {employees.map((employee) => (
                 <div key={employee.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                      <span className="text-white font-medium">
-                        {employee.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                      </span>
-                    </div>
+                    <Avatar
+                      src={employee.profilePicture}
+                      name={employee.name}
+                      size="w-10 h-10"
+                      className="flex-shrink-0"
+                    />
                     <div>
                       <p className="font-medium text-gray-900">{employee.name}</p>
                       <p className="text-sm text-gray-500">
@@ -246,9 +248,19 @@ export default function AssignTasks() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">{task.title}</p>
-                    <p className="text-sm text-gray-500">
-                      Assigned to: {task.assigned_to?.name || 'Unknown'}
-                    </p>
+                    <div className="flex items-center mt-1">
+                      <span className="text-sm text-gray-500 mr-2">Assigned to:</span>
+                      <Avatar
+                        src={task.assigned_to?.profilePicture}
+                        name={task.assigned_to?.name}
+                        size="w-5 h-5"
+                        textSize="text-[10px]"
+                        className="mr-1.5"
+                      />
+                      <span className="text-sm text-gray-500">
+                        {task.assigned_to?.name || 'Unknown'}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
