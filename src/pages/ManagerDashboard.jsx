@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, MessageSquare, TrendingUp, Video, Users, Calendar, Printer, Download } from 'lucide-react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
+import Avatar from '../components/ui/Avatar';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import DonutChart from '../components/charts/DonutChart';
@@ -415,13 +416,12 @@ export default function ManagerDashboard({ onNavigate }) {
                 className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer gap-3 transition-colors"
               >
                 <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
-                  <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {employee.profilePicture ? (
-                      <img src={employee.profilePicture} alt={employee.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-white font-medium text-sm">{employee.avatar}</span>
-                    )}
-                  </div>
+                  <Avatar
+                    src={employee.profilePicture}
+                    name={employee.name}
+                    size="w-10 h-10"
+                    fallbackColor="bg-primary"
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-gray-900 dark:text-white truncate">{employee.name}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -565,13 +565,12 @@ export default function ManagerDashboard({ onNavigate }) {
                       <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{task.title}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center">
-                          <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center mr-2 text-xs text-white overflow-hidden">
-                            {task.assigned_to?.profilePicture ? (
-                              <img src={task.assigned_to.profilePicture} alt={task.assigned_to.name} className="w-full h-full object-cover" />
-                            ) : (
-                              task.assigned_to?.name ? task.assigned_to.name.charAt(0).toUpperCase() : '?'
-                            )}
-                          </div>
+                          <Avatar
+                            src={task.assigned_to?.profilePicture}
+                            name={task.assigned_to?.name || '?'}
+                            size="w-6 h-6"
+                            className="mr-2 text-xs"
+                          />
                           {task.assigned_to?.name || 'Unassigned'}
                         </div>
                       </td>

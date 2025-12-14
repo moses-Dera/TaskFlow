@@ -805,13 +805,13 @@ export default function EmployeeDashboard({ onNavigate }) {
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Assigned By</h3>
                   <div className="flex items-center text-gray-900 dark:text-white">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium mr-3 overflow-hidden">
-                      {focusTask.assigned_by?.profilePicture ? (
-                        <img src={focusTask.assigned_by.profilePicture} alt={focusTask.assigned_by.name} className="w-full h-full object-cover" />
-                      ) : (
-                        focusTask.assigned_by?.name?.charAt(0) || 'M'
-                      )}
-                    </div>
+                    <Avatar
+                      src={focusTask.assigned_by?.profilePicture}
+                      name={focusTask.assigned_by?.name || 'Manager'}
+                      size="w-8 h-8"
+                      className="mr-3"
+                      fallbackColor="bg-primary/10"
+                    />
                     {focusTask.assigned_by?.name || 'Manager'}
                   </div>
                 </div>

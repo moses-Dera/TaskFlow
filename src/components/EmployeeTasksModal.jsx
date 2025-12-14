@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Search, Filter, Calendar, CheckCircle, AlertCircle, Clock, ArrowRight } from 'lucide-react';
 import { tasksAPI } from '../utils/api';
 import Badge from './ui/Badge';
+import Avatar from './ui/Avatar';
 import TaskDetailModal from './TaskDetailModal';
 
 export default function EmployeeTasksModal({ employee, onClose, initialFilter = 'all' }) {
@@ -67,13 +68,12 @@ export default function EmployeeTasksModal({ employee, onClose, initialFilter = 
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white text-xl font-bold overflow-hidden">
-                            {employee.profilePicture ? (
-                                <img src={employee.profilePicture} alt={employee.name} className="w-full h-full object-cover" />
-                            ) : (
-                                employee.name.charAt(0)
-                            )}
-                        </div>
+                        <Avatar
+                            src={employee.profilePicture}
+                            name={employee.name}
+                            size="w-12 h-12 text-xl"
+                            fallbackColor="bg-primary"
+                        />
                         <div>
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white">{employee.name}</h2>
                             <p className="text-sm text-gray-500 dark:text-gray-400">{employee.department} • {employee.role}</p>

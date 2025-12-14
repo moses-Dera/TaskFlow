@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, Target, Award, Users, Calendar, CheckCircle } from 'lucide-react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
+import Avatar from '../components/ui/Avatar';
 import { CircularProgress } from '../components/charts/ProgressBar';
 import SimpleLineChart from '../components/charts/LineChart';
 import { teamAPI } from '../utils/api';
@@ -121,15 +122,12 @@ export default function TeamPerformance() {
               {employees.map((employee) => (
                 <div key={employee.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center overflow-hidden">
-                      {employee.profilePicture ? (
-                        <img src={employee.profilePicture} alt={employee.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-white font-medium">
-                          {employee.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                        </span>
-                      )}
-                    </div>
+                    <Avatar
+                      src={employee.profilePicture}
+                      name={employee.name}
+                      size="w-10 h-10"
+                      fallbackColor="bg-primary"
+                    />
                     <div>
                       <p className="font-medium text-gray-900">{employee.name}</p>
                       <p className="text-sm text-gray-500">

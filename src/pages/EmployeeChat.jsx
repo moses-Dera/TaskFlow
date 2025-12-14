@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, MessageSquare, Users, Search, Smile, MoreVertical, Edit2, Trash2, Pin, Reply, X, PinOff, Paperclip, File, Download, Image as ImageIcon, ArrowLeft } from 'lucide-react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
+import Avatar from '../components/ui/Avatar';
 import Button from '../components/ui/Button';
 import { chatAPI, authAPI } from '../utils/api';
 import { useNotification } from '../hooks/useNotification';
@@ -510,19 +511,13 @@ export default function EmployeeChat() {
                     }`}
                 >
                   <div className="relative">
-                    {member.profilePicture ? (
-                      <img
-                        src={member.profilePicture}
-                        alt={member.name}
-                        className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-600"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                        <span className="text-white font-semibold text-sm">
-                          {member.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
+                    <Avatar
+                      src={member.profilePicture}
+                      name={member.name}
+                      size="w-10 h-10"
+                      className="border border-gray-200 dark:border-gray-600"
+                      fallbackColor="bg-gradient-to-br from-purple-500 to-pink-500"
+                    />
                     {isUserOnline(member._id) && (
                       <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
                     )}
@@ -553,11 +548,15 @@ export default function EmployeeChat() {
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                 </button>
-                {selectedUser && selectedUser.profilePicture ? (
-                  <img src={selectedUser.profilePicture} alt={selectedUser.name} className="w-8 h-8 rounded-full mr-2 object-cover" />
-                ) : (
-                  <MessageSquare className="w-5 h-5 mr-2" />
+                {selectedUser && (
+                  <Avatar
+                    src={selectedUser.profilePicture}
+                    name={selectedUser.name}
+                    size="w-8 h-8"
+                    className="mr-2"
+                  />
                 )}
+                {!selectedUser && <MessageSquare className="w-5 h-5 mr-2" />}
                 {getChatTitle()}
               </div>
               <div className="flex items-center gap-2">
@@ -619,17 +618,13 @@ export default function EmployeeChat() {
                         {/* Avatar for incoming messages */}
                         {!isOwnMessage && (
                           <div className="mb-1 ml-1 flex items-center gap-2">
-                            {msg.sender_id.profilePicture ? (
-                              <img
-                                src={msg.sender_id.profilePicture}
-                                alt={msg.sender_id.name}
-                                className="w-6 h-6 rounded-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center text-xs text-white">
-                                {msg.sender_id.name.charAt(0).toUpperCase()}
-                              </div>
-                            )}
+                            <Avatar
+                              src={msg.sender_id.profilePicture}
+                              name={msg.sender_id.name}
+                              size="w-6 h-6"
+                              className="text-xs"
+                              fallbackColor="bg-purple-500"
+                            />
                             <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                               {msg.sender_id.name}
                             </span>

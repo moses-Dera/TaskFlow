@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, UserPlus, Edit, Trash2, Shield } from 'lucide-react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
+import Avatar from '../components/ui/Avatar';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { teamAPI } from '../utils/api';
@@ -253,15 +254,12 @@ export default function UserManagement() {
                   >
                     <td className="py-4 px-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center overflow-hidden">
-                          {user.profilePicture ? (
-                            <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-white font-medium">
-                              {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                            </span>
-                          )}
-                        </div>
+                        <Avatar
+                          src={user.profilePicture}
+                          name={user.name}
+                          size="w-10 h-10"
+                          fallbackColor="bg-primary"
+                        />
                         <div>
                           <p className="font-medium text-gray-900">{user.name}</p>
                           <p className="text-sm text-gray-500">{user.email}</p>

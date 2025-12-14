@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Calendar, Paperclip, File, Download, ExternalLink, CheckCircle, Upload, CalendarPlus } from 'lucide-react';
 import Button from './ui/Button';
+import Avatar from './ui/Avatar';
 import Badge from './ui/Badge';
 import { tasksAPI } from '../utils/api';
 
@@ -121,17 +122,13 @@ export default function TaskDetailModal({ task, onClose, onMarkComplete, isManag
                                 {isManagerView ? 'Assigned To' : 'Assigned By'}
                             </h3>
                             <div className="flex items-center text-gray-900 dark:text-white">
-                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium mr-3 overflow-hidden">
-                                    {(isManagerView ? task.assigned_to?.profilePicture : task.assigned_by?.profilePicture) ? (
-                                        <img
-                                            src={(isManagerView ? task.assigned_to?.profilePicture : task.assigned_by?.profilePicture)}
-                                            alt={(isManagerView ? task.assigned_to?.name : task.assigned_by?.name)}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        (isManagerView ? task.assigned_to?.name : task.assigned_by?.name)?.charAt(0) || 'U'
-                                    )}
-                                </div>
+                                <Avatar
+                                    src={isManagerView ? task.assigned_to?.profilePicture : task.assigned_by?.profilePicture}
+                                    name={(isManagerView ? task.assigned_to?.name : task.assigned_by?.name) || 'User'}
+                                    size="w-8 h-8"
+                                    className="mr-3"
+                                    fallbackColor="bg-primary/10"
+                                />
                                 {isManagerView ? (task.assigned_to?.name || 'Unknown') : (task.assigned_by?.name || 'Manager')}
                             </div>
                         </div>
