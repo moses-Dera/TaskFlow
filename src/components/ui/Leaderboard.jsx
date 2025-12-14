@@ -121,7 +121,10 @@ export default function Leaderboard({ employees, onEmployeeClick }) {
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            {employee.email} • {employee.department || 'No Dept'}
+                                        </div>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                                             {employee.tasks_completed} completed tasks
                                         </p>
                                     </div>
