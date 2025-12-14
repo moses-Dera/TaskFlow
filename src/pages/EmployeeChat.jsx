@@ -276,7 +276,7 @@ export default function EmployeeChat() {
           _id: tempId,
           message: newMessage || '📎 Attachment',
           sender_id: {
-            _id: currentUser.id,
+            _id: currentUser.id, // Auth response returns 'id', mapped to '_id' for compatibility
             name: currentUser.name,
             avatar: currentUser.avatar
           },
