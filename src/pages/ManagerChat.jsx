@@ -112,11 +112,15 @@ export default function ManagerChat() {
   };
 
   // Socket.io real-time listeners
+  // Socket.io real-time listeners
   useEffect(() => {
     if (!socket || !currentUser) return;
 
     const handleNewMessage = (data) => {
       console.log('📨 New message received:', data);
+
+      // Ignore our own messages to prevent duplicates with optimistic UI
+      if (data.message.sender_id._id == currentUser.id) return;
 
       const isRelevant = !selectedUser && !data.message.recipient_id ||
         selectedUser && data.message.sender_id && (
@@ -125,14 +129,15 @@ export default function ManagerChat() {
         );
 
       if (isRelevant) {
-        setMessages(prev => [...prev, data.message]);
+        setMessages(prev => {
+          if (prev.some(m => m._id === data.message._id)) return prev;
+          return [...prev, data.message];
+        });
 
-        // Mark as read if conversation is open and not own message
         if (data.message.sender_id._id !== currentUser.id) {
           chatAPI.markAsRead(data.message._id).catch(console.error);
         }
       } else {
-        // Update unread count for other conversations
         const senderId = data.message.sender_id._id;
         const isGroupMsg = !data.message.recipient_id;
         const countKey = isGroupMsg ? 'group' : senderId;
@@ -176,7 +181,6 @@ export default function ManagerChat() {
 
     const handleMessagePinned = (data) => {
       if (data.isPinned) {
-        // Reload pinned messages
         chatAPI.getPinnedMessages(selectedUser?._id).then(response => {
           if (response.success) setPinnedMessages(response.data || []);
         });
@@ -210,7 +214,6 @@ export default function ManagerChat() {
 
   const updateReactions = (reactions, data) => {
     if (!reactions) reactions = [];
-
     if (data.action === 'add') {
       const existing = reactions.find(r => r.emoji === data.emoji);
       if (existing) {
@@ -229,7 +232,6 @@ export default function ManagerChat() {
         }
       }
     }
-
     return [...reactions];
   };
 
@@ -238,7 +240,6 @@ export default function ManagerChat() {
 
     try {
       if (editingMessage) {
-        // Edit existing message
         const response = await chatAPI.editMessage(editingMessage._id, newMessage);
         if (response.success) {
           setMessages(prev => prev.map(msg =>
@@ -250,8 +251,6 @@ export default function ManagerChat() {
         }
       } else {
         let attachments = [];
-
-        // Upload files if any
         if (selectedFiles.length > 0) {
           const uploadResponse = await chatAPI.uploadAttachment(selectedFiles);
           if (uploadResponse.success) {
@@ -262,29 +261,45 @@ export default function ManagerChat() {
           }
         }
 
-        // Send new message
+        const tempId = 'temp-' + Date.now();
+        const messageText = newMessage || '📎 Attachment';
         const messageData = {
-          message: newMessage || '📎 Attachment',
+          message: messageText,
           ...(selectedUser && { recipient_id: selectedUser._id }),
           ...(replyingTo && { replyTo: replyingTo._id }),
           ...(attachments.length > 0 && { attachments })
         };
 
-        const response = await chatAPI.sendMessage(messageData);
-        if (response.success) {
-          setMessages(prev => [...prev, response.data]);
+        const optimisticMessage = {
+          _id: tempId,
+          message: messageText,
+          sender_id: {
+            _id: currentUser.id,
+            name: currentUser.name,
+          },
+          recipient_id: selectedUser ? { _id: selectedUser._id } : null,
+          createdAt: new Date().toISOString(),
+          isOptimistic: true,
+          attachments: attachments,
+          reactions: []
+        };
 
-          if (socket) {
-            socket.emit('send_message', {
-              recipientId: selectedUser?._id,
-              message: newMessage || '📎 Attachment'
-            });
-          }
-        }
+        setMessages(prev => [...prev, optimisticMessage]);
         setNewMessage('');
         setSelectedFiles([]);
         if (fileInputRef.current) fileInputRef.current.value = '';
         setReplyingTo(null);
+
+        const response = await chatAPI.sendMessage(messageData);
+
+        if (response.success) {
+          setMessages(prev => prev.map(msg =>
+            msg._id === tempId ? response.data : msg
+          ));
+        } else {
+          setMessages(prev => prev.filter(msg => msg._id !== tempId));
+          error('Failed to send message');
+        }
       }
 
       if (socket && selectedUser) {
@@ -292,6 +307,7 @@ export default function ManagerChat() {
       }
     } catch (err) {
       console.error('Failed to send message:', err);
+      // Remove optimistic message if possible or just show error
       error('Failed to send message: ' + err.message);
     }
   };
