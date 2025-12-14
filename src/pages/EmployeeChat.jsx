@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, MessageSquare, Users, Search, Smile, MoreVertical, Edit2, Trash2, Pin, Reply, X, PinOff, Paperclip, File, Download, Image as ImageIcon } from 'lucide-react';
+import { Send, MessageSquare, Users, Search, Smile, MoreVertical, Edit2, Trash2, Pin, Reply, X, PinOff, Paperclip, File, Download, Image as ImageIcon, ArrowLeft } from 'lucide-react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { chatAPI, authAPI } from '../utils/api';
@@ -29,6 +29,7 @@ export default function EmployeeChat() {
   const [pinnedMessages, setPinnedMessages] = useState([]);
   const [unreadCounts, setUnreadCounts] = useState({});
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [showMobileChat, setShowMobileChat] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
@@ -116,6 +117,11 @@ export default function EmployeeChat() {
 
     const handleNewMessage = (data) => {
       console.log('📨 New message received:', data);
+
+      // Ignore messages sent by current user to prevent duplicates (handled optimistically)
+      if (data.senderId === currentUser?.id || data.message.sender_id._id === currentUser?.id) {
+        return;
+      }
 
       const isRelevant = !selectedUser && !data.message.recipient_id ||
         selectedUser && data.message.sender_id && (
@@ -264,23 +270,51 @@ export default function EmployeeChat() {
           }
         }
 
+        // Optimistic UI Update
+        const tempId = 'temp-' + Date.now();
+        const optimisticMessage = {
+          _id: tempId,
+          message: newMessage || '📎 Attachment',
+          sender_id: {
+            _id: currentUser.id,
+            name: currentUser.name,
+            avatar: currentUser.avatar
+          },
+          recipient_id: selectedUser ? { _id: selectedUser._id } : null,
+          createdAt: new Date().toISOString(),
+          attachments: attachments,
+          isOptimistic: true
+        };
+
+        setMessages(prev => [...prev, optimisticMessage]);
+        setNewMessage('');
+        setSelectedFiles([]);
+        setReplyingTo(null);
+
         // Always use HTTP API for reliable message sending
         const messageData = {
-          message: newMessage || '📎 Attachment',
+          message: optimisticMessage.message,
           ...(selectedUser && { recipient_id: selectedUser._id }),
           ...(replyingTo && { replyTo: replyingTo._id }),
           ...(attachments.length > 0 && { attachments })
         };
 
-        const response = await chatAPI.sendMessage(messageData);
-        if (response.success) {
-          // Don't add to messages here - let Socket.io handle it for real-time updates
-          console.log('Message sent successfully');
+        try {
+          const response = await chatAPI.sendMessage(messageData);
+          if (response.success) {
+            // Replace optimistic message with real one
+            setMessages(prev => prev.map(msg =>
+              msg._id === tempId ? response.data : msg
+            ));
+          } else {
+            // Remove optimistic message on failure
+            setMessages(prev => prev.filter(msg => msg._id !== tempId));
+            error('Failed to send message');
+          }
+        } catch (err) {
+          setMessages(prev => prev.filter(msg => msg._id !== tempId));
+          throw err;
         }
-
-        setNewMessage('');
-        setSelectedFiles([]);
-        setReplyingTo(null);
       }
 
       if (socket && selectedUser) {
@@ -417,7 +451,7 @@ export default function EmployeeChat() {
 
       <div className="flex gap-4 h-[calc(100vh-200px)]">
         {/* Sidebar - User List */}
-        <Card className="w-80 flex flex-col">
+        <Card className={`w-full md:w-80 flex-col ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
           <CardHeader className="border-b border-gray-200 dark:border-gray-700">
             <CardTitle className="flex items-center text-base">
               <Users className="w-5 h-5 mr-2" />
@@ -443,7 +477,10 @@ export default function EmployeeChat() {
             <div className="overflow-y-auto h-full">
               {/* Group Chat Option */}
               <button
-                onClick={() => setSelectedUser(null)}
+                onClick={() => {
+                  setSelectedUser(null);
+                  setShowMobileChat(true);
+                }}
                 className={`w-full px-4 py-3 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-700 ${!selectedUser ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                   }`}
               >
@@ -465,7 +502,10 @@ export default function EmployeeChat() {
               {filteredTeamMembers.filter(member => member != null).map((member) => (
                 <button
                   key={member._id}
-                  onClick={() => setSelectedUser(member)}
+                  onClick={() => {
+                    setSelectedUser(member);
+                    setShowMobileChat(true);
+                  }}
                   className={`w-full px-4 py-3 flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-700 ${selectedUser?._id === member._id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                     }`}
                 >
@@ -495,10 +535,16 @@ export default function EmployeeChat() {
         </Card>
 
         {/* Chat Area */}
-        <Card className="flex-1 flex flex-col overflow-hidden">
+        <Card className={`flex-1 flex-col overflow-hidden ${showMobileChat ? 'flex' : 'hidden md:flex'}`}>
           <CardHeader className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20 bg-white dark:bg-gray-800">
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center">
+                <button
+                  onClick={() => setShowMobileChat(false)}
+                  className="md:hidden mr-2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                >
+                  <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                </button>
                 <MessageSquare className="w-5 h-5 mr-2" />
                 {getChatTitle()}
               </div>
@@ -515,7 +561,7 @@ export default function EmployeeChat() {
                       if (e.target.value === '') handleSearchMessages();
                     }}
                     onKeyPress={(e) => e.key === 'Enter' && handleSearchMessages()}
-                    className="pl-9 pr-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white w-48"
+                    className="pl-9 pr-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white w-32 sm:w-48"
                   />
                 </div>
                 <span className="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
@@ -542,7 +588,7 @@ export default function EmployeeChat() {
             )}
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+            <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-4 min-h-0">
               {messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
                   <div className="text-center">
