@@ -510,14 +510,23 @@ export default function ManagerChat() {
                     }`}
                 >
                   <div className="relative">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                      <span className="text-white font-semibold text-sm">
-                        {member.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    {isUserOnline(member._id) && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+                    {member.profilePicture ? (
+                      <img
+                        src={member.profilePicture}
+                        alt={member.name}
+                        className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-600"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                        <span className="text-white font-semibold text-sm">
+                          {member.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
                     )}
+                    {isUserOnline(member._id) && (
+                      { isUserOnline(member._id) && (
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+                      )}
                   </div>
                   <div className="flex-1 text-left">
                     <p className="font-medium text-gray-900 dark:text-white text-sm">{member.name}</p>
@@ -603,293 +612,318 @@ export default function ManagerChat() {
 
                   return (
                     <div key={msg._id} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} group relative z-10`}>
-                      <div className={`relative max-w-[85%] md:max-w-[75%] ${isOwnMessage ? 'items-end' : 'items-start'}`}>
-                        {/* Reply indicator */}
-                        {msg.replyTo && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 italic truncate">
-                            Replying to: {msg.replyTo.message?.substring(0, 50)}...
+                      <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-[85%] md:max-w-[75%]`}>
+                        {/* Avatar for incoming messages */}
+                        {!isOwnMessage && (
+                          <div className="mb-1 ml-1 flex items-center gap-2">
+                            {msg.sender_id.profilePicture ? (
+                              <img
+                                src={msg.sender_id.profilePicture}
+                                alt={msg.sender_id.name}
+                                className="w-6 h-6 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center text-xs text-white">
+                                {msg.sender_id.name.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                              {msg.sender_id.name}
+                            </span>
                           </div>
                         )}
 
-                        <div className={`px-4 py-2 rounded-lg shadow-sm break-words ${isOwnMessage
-                          ? (isGroupChat ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white' : 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white')
-                          : (isGroupChat ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'bg-emerald-100 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100')
-                          } `}>
-                          {!isOwnMessage && (
-                            <p className="text-xs font-medium mb-1 opacity-75">{msg.sender_id.name}</p>
+                        <div className={`relative w-full ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+                          {/* Reply indicator */}
+                          {msg.replyTo && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 italic truncate">
+                              Replying to: {msg.replyTo.message?.substring(0, 50)}...
+                            </div>
                           )}
-                          <p className="text-sm whitespace-pre-wrap break-all">{msg.message}</p>
 
-                          {/* File Attachments */}
-                          {msg.attachments && msg.attachments.length > 0 && (
-                            <div className="mt-2 space-y-2">
-                              {msg.attachments.map((file, idx) => {
-                                const isImage = file.mimeType?.startsWith('image/');
-                                const fileUrl = file.url.startsWith('http')
-                                  ? file.url
-                                  : `${import.meta.env.VITE_API_URL || 'https://task-manger-backend-z2yz.onrender.com/api'}${file.url}`;
+                          <div className={`px-4 py-2 rounded-lg shadow-sm break-words ${isOwnMessage
+                            ? (isGroupChat ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white' : 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white')
+                            : (isGroupChat ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white' : 'bg-emerald-100 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100')
+                            } `}>
 
-                                const handleDownload = async (e) => {
-                                  e.preventDefault();
-                                  try {
-                                    const response = await fetch(fileUrl);
-                                    const blob = await response.blob();
-                                    const blobUrl = window.URL.createObjectURL(blob);
-                                    const link = document.createElement('a');
-                                    link.href = blobUrl;
-                                    link.download = file.originalName || 'download';
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                    window.URL.revokeObjectURL(blobUrl);
-                                  } catch (error) {
-                                    console.error('Download failed:', error);
-                                    window.open(fileUrl, '_blank');
-                                  }
-                                };
+                            <p className="text-sm whitespace-pre-wrap break-all">{msg.message}</p>
 
-                                return (
-                                  <div key={idx} className="bg-white/10 dark:bg-black/10 rounded-lg p-2">
-                                    {isImage ? (
-                                      <div className="relative group/img">
-                                        <img
-                                          src={fileUrl}
-                                          alt={file.originalName}
-                                          className="max-w-full max-h-48 rounded cursor-pointer hover:opacity-90 transition-opacity"
-                                          onClick={() => window.open(fileUrl, '_blank')}
-                                        />
+                            {/* File Attachments */}
+                            {msg.attachments && msg.attachments.length > 0 && (
+                              <div className="mt-2 space-y-2">
+                                {msg.attachments.map((file, idx) => {
+                                  const isImage = file.mimeType?.startsWith('image/');
+                                  const fileUrl = file.url.startsWith('http')
+                                    ? file.url
+                                    : `${import.meta.env.VITE_API_URL || 'https://task-manger-backend-z2yz.onrender.com/api'}${file.url}`;
+
+                                  const handleDownload = async (e) => {
+                                    e.preventDefault();
+                                    try {
+                                      const response = await fetch(fileUrl);
+                                      const blob = await response.blob();
+                                      const blobUrl = window.URL.createObjectURL(blob);
+                                      const link = document.createElement('a');
+                                      link.href = blobUrl;
+                                      link.download = file.originalName || 'download';
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      document.body.removeChild(link);
+                                      window.URL.revokeObjectURL(blobUrl);
+                                    } catch (error) {
+                                      console.error('Download failed:', error);
+                                      window.open(fileUrl, '_blank');
+                                    }
+                                  };
+
+                                  return (
+                                    <div key={idx} className="bg-white/10 dark:bg-black/10 rounded-lg p-2">
+                                      {isImage ? (
+                                        <div className="relative group/img">
+                                          <img
+                                            src={fileUrl}
+                                            alt={file.originalName}
+                                            className="max-w-full max-h-48 rounded cursor-pointer hover:opacity-90 transition-opacity"
+                                            onClick={() => window.open(fileUrl, '_blank')}
+                                          />
+                                          <a
+                                            href={fileUrl}
+                                            onClick={handleDownload}
+                                            className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity"
+                                            title="Download"
+                                          >
+                                            <Download className="w-4 h-4" />
+                                          </a>
+                                        </div>
+                                      ) : (
                                         <a
                                           href={fileUrl}
                                           onClick={handleDownload}
-                                          className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover/img:opacity-100 transition-opacity"
-                                          title="Download"
+                                          className="flex items-center gap-2 hover:bg-white/10 dark:hover:bg-black/10 p-1 rounded transition-colors"
                                         >
-                                          <Download className="w-4 h-4" />
+                                          <File className="w-5 h-5 flex-shrink-0" />
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-medium truncate">{file.originalName}</p>
+                                            <p className="text-xs opacity-60">{(file.size / 1024).toFixed(1)} KB</p>
+                                          </div>
+                                          <Download className="w-4 h-4 flex-shrink-0" />
                                         </a>
-                                      </div>
-                                    ) : (
-                                      <a
-                                        href={fileUrl}
-                                        onClick={handleDownload}
-                                        className="flex items-center gap-2 hover:bg-white/10 dark:hover:bg-black/10 p-1 rounded transition-colors"
-                                      >
-                                        <File className="w-5 h-5 flex-shrink-0" />
-                                        <div className="flex-1 min-w-0">
-                                          <p className="text-xs font-medium truncate">{file.originalName}</p>
-                                          <p className="text-xs opacity-60">{(file.size / 1024).toFixed(1)} KB</p>
-                                        </div>
-                                        <Download className="w-4 h-4 flex-shrink-0" />
-                                      </a>
-                                    )}
-                                  </div>
-                                );
-                              })}
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            <div className="flex items-center justify-between mt-1">
+                              <p className="text-xs opacity-75">
+                                {formatTimestamp(msg.createdAt)}
+                                {msg.isEdited && <span className="ml-1">(edited)</span>}
+                              </p>
+
+                              {/* Message actions */}
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                <button
+                                  onClick={() => setShowEmojiPicker(showEmojiPicker === msg._id ? null : msg._id)}
+                                  className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded"
+                                  title="Add reaction"
+                                >
+                                  <Smile className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={() => setReplyingTo(msg)}
+                                  className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded"
+                                  title="Reply"
+                                >
+                                  <Reply className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={() => setShowMessageMenu(showMessageMenu === msg._id ? null : msg._id)}
+                                  className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded"
+                                  title="More options"
+                                >
+                                  <MoreVertical className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Reactions - Outside message bubble */}
+                          {msg.reactions && msg.reactions.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1 max-w-full">
+                              {msg.reactions.map((reaction, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => handleReaction(msg._id, reaction.emoji)}
+                                  className="bg-white dark:bg-gray-800 rounded-full px-2 py-0.5 text-xs flex items-center gap-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600 shadow-sm"
+                                  title={reaction.users.map(u => u.name).join(', ')}
+                                >
+                                  <span>{reaction.emoji}</span>
+                                  <span className="text-gray-600 dark:text-gray-400">{reaction.users.length}</span>
+                                </button>
+                              ))}
                             </div>
                           )}
 
-                          <div className="flex items-center justify-between mt-1">
-                            <p className="text-xs opacity-75">
-                              {formatTimestamp(msg.createdAt)}
-                              {msg.isEdited && <span className="ml-1">(edited)</span>}
-                            </p>
-
-                            {/* Message actions */}
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                              <button
-                                onClick={() => setShowEmojiPicker(showEmojiPicker === msg._id ? null : msg._id)}
-                                className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded"
-                                title="Add reaction"
-                              >
-                                <Smile className="w-3 h-3" />
-                              </button>
-                              <button
-                                onClick={() => setReplyingTo(msg)}
-                                className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded"
-                                title="Reply"
-                              >
-                                <Reply className="w-3 h-3" />
-                              </button>
-                              <button
-                                onClick={() => setShowMessageMenu(showMessageMenu === msg._id ? null : msg._id)}
-                                className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded"
-                                title="More options"
-                              >
-                                <MoreVertical className="w-3 h-3" />
-                              </button>
+                          {/* Emoji Picker */}
+                          {showEmojiPicker === msg._id && (
+                            <div className="absolute top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl p-2 flex gap-1 z-50 border border-gray-200 dark:border-gray-600">
+                              {EMOJI_OPTIONS.map(emoji => (
+                                <button
+                                  key={emoji}
+                                  onClick={() => handleReaction(msg._id, emoji)}
+                                  className="hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded text-lg"
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
                             </div>
-                          </div>
-                        </div>
+                          )}
 
-                        {/* Reactions - Outside message bubble */}
-                        {msg.reactions && msg.reactions.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1 max-w-full">
-                            {msg.reactions.map((reaction, idx) => (
+                          {/* Message Menu */}
+                          {showMessageMenu === msg._id && (
+                            <div className="absolute bottom-full mb-2 right-0 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-1 z-50 min-w-[150px] border border-gray-200 dark:border-gray-600">
+                              {isOwnMessage && (
+                                <button
+                                  onClick={() => handleEditMessage(msg)}
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                  Edit
+                                </button>
+                              )}
                               <button
-                                key={idx}
-                                onClick={() => handleReaction(msg._id, reaction.emoji)}
-                                className="bg-white dark:bg-gray-800 rounded-full px-2 py-0.5 text-xs flex items-center gap-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600 shadow-sm"
-                                title={reaction.users.map(u => u.name).join(', ')}
-                              >
-                                <span>{reaction.emoji}</span>
-                                <span className="text-gray-600 dark:text-gray-400">{reaction.users.length}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Emoji Picker */}
-                        {showEmojiPicker === msg._id && (
-                          <div className="absolute top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl p-2 flex gap-1 z-50 border border-gray-200 dark:border-gray-600">
-                            {EMOJI_OPTIONS.map(emoji => (
-                              <button
-                                key={emoji}
-                                onClick={() => handleReaction(msg._id, emoji)}
-                                className="hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded text-lg"
-                              >
-                                {emoji}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Message Menu */}
-                        {showMessageMenu === msg._id && (
-                          <div className="absolute bottom-full mb-2 right-0 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-1 z-50 min-w-[150px] border border-gray-200 dark:border-gray-600">
-                            {isOwnMessage && (
-                              <button
-                                onClick={() => handleEditMessage(msg)}
+                                onClick={() => handlePinMessage(msg)}
                                 className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                               >
-                                <Edit2 className="w-4 h-4" />
-                                Edit
+                                {msg.isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+                                {msg.isPinned ? 'Unpin' : 'Pin'}
                               </button>
-                            )}
-                            <button
-                              onClick={() => handlePinMessage(msg)}
-                              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                            >
-                              {msg.isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-                              {msg.isPinned ? 'Unpin' : 'Pin'}
-                            </button>
-                            {isOwnMessage && (
-                              <button
-                                onClick={() => handleDeleteMessage(msg._id)}
-                                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-red-600"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                Delete
-                              </button>
-                            )}
-                          </div>
-                        )}
+                              {isOwnMessage && (
+                                <button
+                                  onClick={() => handleDeleteMessage(msg._id)}
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-red-600"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Delete
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
+                      );
                 })
               )}
-              {isTyping && typingUser && (
-                <div className="flex justify-start">
-                  <div className="max-w-xs px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700">
-                    <p className="text-sm text-gray-600 dark:text-gray-300 italic">
-                      {typingUser} is typing...
-                    </p>
+                      {isTyping && typingUser && (
+                        <div className="flex justify-start">
+                          <div className="max-w-xs px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700">
+                            <p className="text-sm text-gray-600 dark:text-gray-300 italic">
+                              {typingUser} is typing...
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      <div ref={messagesEndRef} />
+                    </div>
+
+            {/* Reply indicator */ }
+                  {
+                    replyingTo && (
+                      <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Reply className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            Replying to {replyingTo.sender_id.name}: {replyingTo.message.substring(0, 50)}...
+                          </span>
+                        </div>
+                        <button onClick={() => setReplyingTo(null)} className="text-gray-500 hover:text-gray-700">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )
+                  }
+
+                  {/* Edit indicator */ }
+                  {
+                    editingMessage && (
+                      <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-800 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Edit2 className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm text-blue-600 dark:text-blue-400">
+                            Editing message
+                          </span>
+                        </div>
+                        <button onClick={() => { setEditingMessage(null); setNewMessage(''); }} className="text-blue-600 hover:text-blue-700">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )
+                  }
+
+                  {/* Selected Files Indicator */ }
+                  {
+                    selectedFiles.length > 0 && (
+                      <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-2">
+                        {selectedFiles.map((file, idx) => (
+                          <div key={idx} className="flex items-center bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 shadow-sm">
+                            <Paperclip className="w-3 h-3 text-gray-400 mr-2" />
+                            <span className="text-sm text-gray-700 dark:text-gray-300 max-w-[150px] truncate">{file.name}</span>
+                            <button
+                              onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== idx))}
+                              className="ml-2 text-gray-400 hover:text-red-500"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  }
+
+                  {/* Message Input */ }
+                  <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-end gap-2">
+                      <div className="flex-1">
+                        <textarea
+                          value={newMessage}
+                          onChange={handleTyping}
+                          onKeyPress={handleKeyPress}
+                          placeholder={`Message ${selectedUser ? selectedUser.name : 'the team'}...`}
+                          rows={1}
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none overflow-y-auto min-h-[42px] max-h-[120px]"
+                        />
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files);
+                          if (files.length > 0) {
+                            setSelectedFiles(prev => [...prev, ...files]);
+                          }
+                        }}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        title="Attach file"
+                        className={`flex-shrink-0 ${selectedFiles.length > 0 ? 'text-primary border-primary bg-primary/10' : ''}`}
+                      >
+                        <Paperclip className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        onClick={sendMessage}
+                        disabled={!newMessage.trim() && selectedFiles.length === 0}
+                        className="flex-shrink-0"
+                      >
+                        <Send className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Reply indicator */}
-            {replyingTo && (
-              <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Reply className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Replying to {replyingTo.sender_id.name}: {replyingTo.message.substring(0, 50)}...
-                  </span>
-                </div>
-                <button onClick={() => setReplyingTo(null)} className="text-gray-500 hover:text-gray-700">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
-            {/* Edit indicator */}
-            {editingMessage && (
-              <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-800 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Edit2 className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm text-blue-600 dark:text-blue-400">
-                    Editing message
-                  </span>
-                </div>
-                <button onClick={() => { setEditingMessage(null); setNewMessage(''); }} className="text-blue-600 hover:text-blue-700">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
-            {/* Selected Files Indicator */}
-            {selectedFiles.length > 0 && (
-              <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex flex-wrap gap-2">
-                {selectedFiles.map((file, idx) => (
-                  <div key={idx} className="flex items-center bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 shadow-sm">
-                    <Paperclip className="w-3 h-3 text-gray-400 mr-2" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300 max-w-[150px] truncate">{file.name}</span>
-                    <button
-                      onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== idx))}
-                      className="ml-2 text-gray-400 hover:text-red-500"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Message Input */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-end gap-2">
-                <div className="flex-1">
-                  <textarea
-                    value={newMessage}
-                    onChange={handleTyping}
-                    onKeyPress={handleKeyPress}
-                    placeholder={`Message ${selectedUser ? selectedUser.name : 'the team'}...`}
-                    rows={1}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none overflow-y-auto min-h-[42px] max-h-[120px]"
-                  />
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files);
-                    if (files.length > 0) {
-                      setSelectedFiles(prev => [...prev, ...files]);
-                    }
-                  }}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  title="Attach file"
-                  className={`flex-shrink-0 ${selectedFiles.length > 0 ? 'text-primary border-primary bg-primary/10' : ''}`}
-                >
-                  <Paperclip className="w-4 h-4" />
-                </Button>
-                <Button
-                  onClick={sendMessage}
-                  disabled={!newMessage.trim() && selectedFiles.length === 0}
-                  className="flex-shrink-0"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
