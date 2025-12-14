@@ -121,10 +121,14 @@ export default function TeamPerformance() {
               {employees.map((employee) => (
                 <div key={employee.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                      <span className="text-white font-medium">
-                        {employee.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                      </span>
+                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center overflow-hidden">
+                      {employee.profilePicture ? (
+                        <img src={employee.profilePicture} alt={employee.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-white font-medium">
+                          {employee.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </span>
+                      )}
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">{employee.name}</p>
