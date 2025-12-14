@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, Target, Award, Calendar, Star } from 'lucide-react';
 import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
-import Card, { CardHeader, CardContent, CardTitle } from '../components/ui/Card';
+
 import { useSocket } from '../context/SocketContext';
 import { CircularProgress } from '../components/charts/ProgressBar';
 import SimpleLineChart from '../components/charts/LineChart';
@@ -194,6 +194,7 @@ export default function EmployeePerformance() {
                   <p className="text-gray-500">Complete tasks to earn achievements!</p>
                 )}
               </div>
+            </div>
           </CardContent>
         </Card>
       </div>
