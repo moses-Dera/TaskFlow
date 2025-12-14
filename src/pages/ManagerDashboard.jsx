@@ -7,6 +7,7 @@ import Badge from '../components/ui/Badge';
 import DonutChart from '../components/charts/DonutChart';
 import SimpleLineChart from '../components/charts/LineChart';
 import MeetingScheduler from '../components/ui/MeetingScheduler';
+import Leaderboard from '../components/ui/Leaderboard';
 import { teamAPI, tasksAPI, authAPI } from '../utils/api';
 import { useNotification } from '../hooks/useNotification';
 import TaskDetailModal from '../components/TaskDetailModal';
@@ -399,80 +400,13 @@ export default function ManagerDashboard({ onNavigate }) {
       </div>
 
       {/* Employee Leaderboard */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Employee Performance</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {employees.map((employee) => (
-              <div
-                key={employee.id}
-                onClick={(e) => {
-                  // Prevent opening if clicking buttons inside
-                  if (e.target.closest('button')) return;
-                  setSelectedEmployee(employee);
-                }}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer gap-3 transition-colors"
-              >
-                <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
-                  <Avatar
-                    src={employee.profilePicture}
-                    name={employee.name}
-                    size="w-10 h-10"
-                    fallbackColor="bg-primary"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-900 dark:text-white truncate">{employee.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {employee.tasks_completed}/{employee.tasks_assigned} tasks completed
-                    </p>
-                    <div className="text-xs text-gray-500 mt-1 space-y-0.5">
-                      <p>📞 {employee.phone || 'N/A'}</p>
-                      <p className="capitalize">🏢 {employee.role} {employee.department ? `• ${employee.department}` : ''}</p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setTasksModalFilter('completed');
-                        setSelectedEmployee(employee);
-                      }}
-                      className="text-xs text-blue-600 hover:text-blue-800 mt-1"
-                    >
-                      View Submitted Tasks
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between sm:justify-end space-x-2 flex-shrink-0">
-                  <Badge variant="primary">{employee.performance_score}</Badge>
-                  <div className="flex space-x-1">
-                    <button
-                      onClick={() => {
-                        const now = new Date();
-                        const endTime = new Date(now.getTime() + 30 * 60 * 1000); // 30 min meeting
-                        const nowISO = now.toISOString().replace(/[-:]/g, '').split('.')[0];
-                        const endISO = endTime.toISOString().replace(/[-:]/g, '').split('.')[0];
-                        const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`1-on-1 with ${employee.name}`)}&dates=${nowISO}Z/${endISO}Z&details=${encodeURIComponent('1-on-1 meeting with Google Meet')}&add=${employee.email}&conf=1`;
-                        window.open(calendarUrl, '_blank');
-                      }}
-                      className="p-2 text-gray-400 hover:text-primary"
-                      title="Start 1-on-1 meeting"
-                    >
-                      <Video className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => onNavigate && onNavigate('/manager/chat')}
-                      className="p-2 text-gray-400 hover:text-primary"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-            }
-          </div>
-        </CardContent>
-      </Card>
+      <Leaderboard
+        employees={employees}
+        onEmployeeClick={(employee) => {
+          setTasksModalFilter('completed');
+          setSelectedEmployee(employee);
+        }}
+      />
 
       {/* All Tasks List & Filtering */}
       <Card className="print-visible">
